@@ -119,3 +119,5 @@ __pycache__/
 
 packages/server/src/images/*
 !packages/server/src/images/.gitkeep
+packages/server/src/templates/*
+!packages/server/src/templates/.gitkeep
