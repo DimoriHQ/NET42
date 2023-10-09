@@ -34,4 +34,4 @@ jobs:
 
       - name: Push data to S3
         working-directory: ./packages/client
-        run: aws s3 sync build/ s3://net42.run/ --acl public-read
+        run: aws s3 sync dist/ s3://net42.run/ --acl public-read
