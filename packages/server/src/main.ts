@@ -123,8 +123,6 @@ import { isExist, saveWaitlist } from "./models/waitlist";
     }
   });
 
-  // array of admin addresses, ... sign
-
   app.use(router.routes());
   app.use(router.allowedMethods());
   // /app router

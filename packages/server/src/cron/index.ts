@@ -9,7 +9,7 @@ export const cronInit = () => {
       logger.info({ thread: "cron", type: "nft scan 5mins" });
 
       try {
-        scanNFTs();
+        // scanNFTs();
       } catch (e) {
         logger.info({ thread: "cron", type: "nft scan 15mins", error: e });
       }
@@ -19,7 +19,7 @@ export const cronInit = () => {
       logger.info({ thread: "cron", type: "cron nft scan 120mins" });
 
       try {
-        scanNFTs();
+        // scanNFTs();
       } catch (e) {
         logger.info({ thread: "cron", type: "cron nft scan 120mins", error: e });
       }

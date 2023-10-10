@@ -7,6 +7,13 @@ import sleep from "../utils/sleep";
 export const listenerInit = () => {
   logger.info({ thread: "listener", message: "listener started" });
 
+  const contract = process.env.NFT_CONTRACT_ADDRESS!;
+
+  if (!contract) {
+    logger.info({ thread: "listener", data: "have no contract yet" });
+    return;
+  }
+
   const wssProvider = new ethers.providers.WebSocketProvider(process.env.RPC_WSS!);
   const wss = new ethers.Contract(process.env.NFT_CONTRACT_ADDRESS!, abi, wssProvider);
 
