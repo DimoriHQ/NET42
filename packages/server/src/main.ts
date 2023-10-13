@@ -18,6 +18,7 @@ import * as EmailValidator from "email-validator";
 import axios from "axios";
 import { RECAPTCHA_SECRETKEY } from "./config";
 import { isExist, saveWaitlist } from "./models/waitlist";
+import {authorize, strava_data} from "./models/getTrackingData";
 
 (async function main() {
   // create app
@@ -46,82 +47,92 @@ import { isExist, saveWaitlist } from "./models/waitlist";
     ctx.body = "API";
   });
 
-  router.get("/leaderboard", async (ctx) => {
-    if (await ctx.cashed()) return;
+  router.get("/authorize-strava", (ctx) => {
+    var response_link = authorize(ctx.request.URL);
+    ctx.redirect(response_link);
+  })
 
-    ctx.body = await leaderboard();
-  });
+  router.get("/home", async (ctx) => {
+    var activity = await strava_data(ctx.request);
+    ctx.body = activity;
+  })
 
-  router.post("/waitlist", async (ctx) => {
-    try {
-      const body = ctx.request.body;
+  // router.get("/leaderboard", async (ctx) => {
+  //   if (await ctx.cashed()) return;
 
-      if (!body["email"] || !body["key"]) {
-        ctx.status = 400;
+  //   ctx.body = await leaderboard();
+  // });
 
-        ctx.body = JSON.stringify({
-          code: 0,
-          status: "Wrong params",
-        });
+  // router.post("/waitlist", async (ctx) => {
+  //   try {
+  //     const body = ctx.request.body;
 
-        return;
-      }
+  //     if (!body["email"] || !body["key"]) {
+  //       ctx.status = 400;
 
-      const vailidEmail = EmailValidator.validate(body["email"]);
+  //       ctx.body = JSON.stringify({
+  //         code: 0,
+  //         status: "Wrong params",
+  //       });
 
-      if (!vailidEmail) {
-        ctx.status = 400;
+  //       return;
+  //     }
 
-        ctx.body = JSON.stringify({
-          code: 0,
-          status: "Email is not valid",
-        });
+  //     const vailidEmail = EmailValidator.validate(body["email"]);
 
-        return;
-      }
+  //     if (!vailidEmail) {
+  //       ctx.status = 400;
 
-      const key = ctx.request.body["key"];
-      const verify = await axios.post(`https://www.google.com/recaptcha/api/siteverify?secret=${RECAPTCHA_SECRETKEY}&response=${key}`, {
-        headers: { "Content-Type": "application/x-www-form-urlencoded", json: true },
-      });
+  //       ctx.body = JSON.stringify({
+  //         code: 0,
+  //         status: "Email is not valid",
+  //       });
 
-      if (!verify.data["success"]) {
-        ctx.status = 400;
+  //       return;
+  //     }
 
-        ctx.body = JSON.stringify({
-          code: 0,
-          status: "Captcha verify error",
-        });
+  //     const key = ctx.request.body["key"];
+  //     const verify = await axios.post(`https://www.google.com/recaptcha/api/siteverify?secret=${RECAPTCHA_SECRETKEY}&response=${key}`, {
+  //       headers: { "Content-Type": "application/x-www-form-urlencoded", json: true },
+  //     });
 
-        return;
-      }
+  //     if (!verify.data["success"]) {
+  //       ctx.status = 400;
 
-      if (await isExist(body["email"])) {
-        ctx.body = JSON.stringify({
-          code: 2,
-          status: "Joined already",
-        });
+  //       ctx.body = JSON.stringify({
+  //         code: 0,
+  //         status: "Captcha verify error",
+  //       });
 
-        return;
-      }
+  //       return;
+  //     }
 
-      await saveWaitlist(body["email"]);
+  //     if (await isExist(body["email"])) {
+  //       ctx.body = JSON.stringify({
+  //         code: 2,
+  //         status: "Joined already",
+  //       });
 
-      ctx.body = JSON.stringify({
-        code: 1,
-        status: "Cuccess",
-      });
+  //       return;
+  //     }
 
-      return;
-    } catch (error) {
-      ctx.body = JSON.stringify({
-        code: 0,
-        status: "Internal error",
-      });
+  //     await saveWaitlist(body["email"]);
 
-      return;
-    }
-  });
+  //     ctx.body = JSON.stringify({
+  //       code: 1,
+  //       status: "Cuccess",
+  //     });
+
+  //     return;
+  //   } catch (error) {
+  //     ctx.body = JSON.stringify({
+  //       code: 0,
+  //       status: "Internal error",
+  //     });
+
+  //     return;
+  //   }
+  // });
 
   // array of admin addresses, ... sign
 
