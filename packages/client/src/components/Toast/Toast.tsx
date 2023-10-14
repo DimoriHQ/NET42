@@ -5,9 +5,7 @@ import { useAppSelector } from "../../app/hooks";
 import { RootState } from "../../app/store";
 import { emptyToast, setToast } from "./toastReducer";
 
-const Toast: React.FC<{ isOnboarding?: boolean }> = ({
-  isOnboarding = false,
-}) => {
+const Toast: React.FC<{ isOnboarding?: boolean }> = ({ isOnboarding = false }) => {
   const dispatch = useDispatch();
 
   const toastRedux = useAppSelector((state: RootState) => state.toast);

@@ -8,3 +8,9 @@ export const create =
   };
 
 export const LazyHome = create(lazy(() => import("../../pages/home")));
+export const LazyCampaigns = create(lazy(() => import("../../pages/campaigns")));
+export const LazyCampaign = create(lazy(() => import("../../pages/campaign")));
+export const LazyProfile = create(lazy(() => import("../../pages/profile")));
+export const LazyCreateCampaign = create(lazy(() => import("../../pages/admin/createCampaign")));
+export const LazyUserTracks = create(lazy(() => import("../../pages/admin/userTracks")));
+export const LazyAdmin = create(lazy(() => import("../../pages/admin/index")));

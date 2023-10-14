@@ -12,10 +12,7 @@ const schema = Joi.object<ToastReducer>({
   show: Joi.boolean().default(false).required(),
   title: Joi.string().default("").required(),
   message: Joi.string().default("").required(),
-  type: Joi.string()
-    .valid("success", "warning", "error", "info")
-    .default("success")
-    .required(),
+  type: Joi.string().valid("success", "warning", "error", "info").default("success").required(),
   square: Joi.boolean().default(false).optional(),
 });
 

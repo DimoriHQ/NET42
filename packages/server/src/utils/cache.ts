@@ -6,7 +6,7 @@ export const cacheOptions = {
     return 1;
   },
 
-  ttl: 1000 * 60 * 1,
+  ttl: 1000 * 60 * 1, // 1 minutes
 
   allowStale: false,
 

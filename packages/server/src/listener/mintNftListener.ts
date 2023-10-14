@@ -1,21 +1,22 @@
 import { ethers } from "ethers";
-import { handleNftId } from "../models/nft";
+import { handleNftId } from "../models/net42";
 import logger from "../utils/log";
 import abi from "../abi/NET42NFT.json";
 import sleep from "../utils/sleep";
+import { NFT_CONTRACT_ADDRESS, RPC_WSS } from "../config";
 
 export const listenerInit = () => {
   logger.info({ thread: "listener", message: "listener started" });
 
-  const contract = process.env.NFT_CONTRACT_ADDRESS!;
+  const contract = NFT_CONTRACT_ADDRESS;
 
   if (!contract) {
     logger.info({ thread: "listener", data: "have no contract yet" });
     return;
   }
 
-  const wssProvider = new ethers.providers.WebSocketProvider(process.env.RPC_WSS!);
-  const wss = new ethers.Contract(process.env.NFT_CONTRACT_ADDRESS!, abi, wssProvider);
+  const wssProvider = new ethers.providers.WebSocketProvider(RPC_WSS);
+  const wss = new ethers.Contract(contract, abi, wssProvider);
 
   wssProvider._websocket.on("close", async () => {
     wssProvider._websocket.terminate();

@@ -1,40 +1,50 @@
 import Koa from "koa";
 import koaLogger from "koa-pino-logger";
-import { client } from "./db";
-import logger from "./utils/log";
 import Router from "@koa/router";
 import helmet from "koa-helmet";
+import bodyParser from "koa-bodyparser";
+import logger from "./utils/log";
+import { client } from "./db";
+import { listenerInit } from "./listener/mintNftListener";
+import { cronInit } from "./cron/index";
+import { init } from "./middlewares/init";
 import { corsMiddleware } from "./middlewares/cors";
 import { cacheMiddleware } from "./middlewares/cache";
 import { dateRangeMiddleware } from "./middlewares/dateRange";
 import { paginationMiddleware } from "./middlewares/page";
-import { cronInit } from "./cron";
 import { limiter } from "./middlewares/limiter";
 import { notFound } from "./middlewares/notFound";
-import bodyParser from "koa-bodyparser";
-import { leaderboard, nftCollInit } from "./models/nft";
-import { listenerInit } from "./listener/mintNftListener";
-import * as EmailValidator from "email-validator";
-import axios from "axios";
-import { RECAPTCHA_SECRETKEY } from "./config";
-import { isExist, saveWaitlist } from "./models/waitlist";
+import { nftCollInit } from "./models/net42";
+import { index } from "./action/index";
+import saveWaitlist from "./action/saveWailist";
+import { getClaimable } from "./action/getClaimable";
+import { auth } from "./middlewares/auth";
+import { admin } from "./middlewares/admin";
+import { getCampaigns } from "./action/getCampaigns";
+import { createCampaign } from "./action/createCampaign";
+import { editCampaign } from "./action/editCampaign";
+import { usersTrackCampaign } from "./action/usersTrackCampaign";
+import { claim } from "./action/claim";
+import { profile } from "./action/profile";
+import { verify } from "./action/verify";
+
+// create app
+const app = new Koa();
+
+app.use(init);
+app.use(cacheMiddleware);
+// app.use(koaLogger());
+app.use(helmet());
+app.use(helmet.hidePoweredBy());
+app.use(corsMiddleware);
+app.use(bodyParser());
+app.use(auth);
+app.use(admin);
 
 (async function main() {
-  // create app
-  const app = new Koa();
-
-  app.use(cacheMiddleware);
-  app.use(koaLogger());
-  app.use(helmet());
-  app.use(helmet.hidePoweredBy());
-  app.use(corsMiddleware);
-  app.use(bodyParser());
-
+  // db
   await client.connect();
-  client.on("close", () => {
-    client.connect();
-  });
-
+  client.on("close", () => client.connect());
   await nftCollInit();
 
   // app router
@@ -42,86 +52,18 @@ import { isExist, saveWaitlist } from "./models/waitlist";
   router.use(dateRangeMiddleware);
   router.use(paginationMiddleware);
 
-  router.get("/", (ctx) => {
-    ctx.body = "API";
-  });
-
-  router.get("/leaderboard", async (ctx) => {
-    if (await ctx.cashed()) return;
-
-    ctx.body = await leaderboard();
-  });
-
-  router.post("/waitlist", async (ctx) => {
-    try {
-      const body = ctx.request.body;
-
-      if (!body["email"] || !body["key"]) {
-        ctx.status = 400;
-
-        ctx.body = JSON.stringify({
-          code: 0,
-          status: "Wrong params",
-        });
-
-        return;
-      }
-
-      const vailidEmail = EmailValidator.validate(body["email"]);
-
-      if (!vailidEmail) {
-        ctx.status = 400;
-
-        ctx.body = JSON.stringify({
-          code: 0,
-          status: "Email is not valid",
-        });
-
-        return;
-      }
-
-      const key = ctx.request.body["key"];
-      const verify = await axios.post(`https://www.google.com/recaptcha/api/siteverify?secret=${RECAPTCHA_SECRETKEY}&response=${key}`, {
-        headers: { "Content-Type": "application/x-www-form-urlencoded", json: true },
-      });
-
-      if (!verify.data["success"]) {
-        ctx.status = 400;
-
-        ctx.body = JSON.stringify({
-          code: 0,
-          status: "Captcha verify error",
-        });
-
-        return;
-      }
-
-      if (await isExist(body["email"])) {
-        ctx.body = JSON.stringify({
-          code: 2,
-          status: "Joined already",
-        });
-
-        return;
-      }
-
-      await saveWaitlist(body["email"]);
-
-      ctx.body = JSON.stringify({
-        code: 1,
-        status: "Cuccess",
-      });
-
-      return;
-    } catch (error) {
-      ctx.body = JSON.stringify({
-        code: 0,
-        status: "Internal error",
-      });
-
-      return;
-    }
-  });
+  router.get("/", index);
+  router.post("/waitlist", saveWaitlist);
+  router.post("/auth/verify", verify);
+  router.get("/campaigns", getCampaigns);
+  router.post("/campaign", createCampaign);
+  router.get("/campaign/:id", getCampaigns);
+  router.put("/campaign/:id", editCampaign);
+  router.put("/campaign/:id/users", usersTrackCampaign);
+  router.get("/claimable", getClaimable);
+  router.get("/campaign/claim/:id", claim);
+  router.get("/profile", profile);
+  router.post("/nft/update-owner", profile);
 
   app.use(router.routes());
   app.use(router.allowedMethods());

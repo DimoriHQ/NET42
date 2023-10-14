@@ -1,5 +1,4 @@
 import { MongoClient } from "mongodb";
+import { MONGODB_URL } from "../config";
 
-const uri = process.env.MONGODB_URL!;
-
-export const client = new MongoClient(uri);
+export const client = new MongoClient(MONGODB_URL);

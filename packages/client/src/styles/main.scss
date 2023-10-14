@@ -4,3 +4,8 @@
   background: rgba(255, 227, 227, 0.1) !important;
   backdrop-filter: blur(3px) !important;
 }
+
+.bg-primary {
+  --tw-bg-opacity: 1;
+  background-color: rgb(48 86 211 / var(--tw-bg-opacity));
+}

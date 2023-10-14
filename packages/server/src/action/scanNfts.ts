@@ -1,4 +1,4 @@
-import { getTotalSupply, handleNftId, updateOwner } from "../models/nft";
+import { getTotalSupply, handleNftId, updateOwner } from "../models/net42";
 import logger from "../utils/log";
 import sleep from "../utils/sleep";
 

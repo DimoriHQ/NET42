@@ -1,10 +1,7 @@
 import React, { PropsWithChildren } from "react";
 import cn from "../../services/cn";
 
-const Popup: React.FC<PropsWithChildren<{ className?: string }>> = ({
-  children,
-  className,
-}) => {
+const Popup: React.FC<PropsWithChildren<{ className?: string }>> = ({ children, className }) => {
   return (
     <div
       className={cn(
@@ -15,7 +12,7 @@ const Popup: React.FC<PropsWithChildren<{ className?: string }>> = ({
         "px-6 py-4",
         "text-left",
         "z-50",
-        className
+        className,
       )}
       role="dialog"
       aria-modal="true"

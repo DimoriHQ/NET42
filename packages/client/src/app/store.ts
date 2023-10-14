@@ -1,13 +1,19 @@
 import { Action, configureStore, ThunkAction } from "@reduxjs/toolkit";
 import toastReducer from "../components/Toast/toastReducer";
-import rankReducer from "../features/leaderboard/reducer";
+import authReducer from "../features/authentication/reducer";
+import campaignReducer from "../features/campaigns/reducer";
 
 const createStore = () => {
   return configureStore({
     reducer: {
       toast: toastReducer,
-      ranks: rankReducer,
+      auth: authReducer,
+      campaign: campaignReducer,
     },
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware({
+        serializableCheck: false,
+      }),
   });
 };
 

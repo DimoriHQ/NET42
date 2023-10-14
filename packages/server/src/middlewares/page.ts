@@ -1,6 +1,7 @@
 import Koa from "koa";
+import { KoaContext } from "../global";
 
-export const paginationMiddleware = async (ctx: any, next: Koa.Next) => {
+export const paginationMiddleware = async (ctx: KoaContext, next: Koa.Next) => {
   let page = Number(ctx.query["page"] || 1);
   if (isNaN(page)) {
     page = 1;
