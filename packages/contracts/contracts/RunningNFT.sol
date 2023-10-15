@@ -1,7 +1,7 @@
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract RunningNFT is ERC721URIStorage, Ownable {
+contract RunningNFT is ERC721URIStorage, Ownable { //nay la NFT SE DUOC LUU BEN THU 3, IPFS HOAC WEB3 STORAGE
     struct User {
         address userAddress; // Store the user's address
         uint256 kmGain;

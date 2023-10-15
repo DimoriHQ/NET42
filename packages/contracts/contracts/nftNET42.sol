@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 
-contract nftNET42 is ERC721URIStorage {
+contract nftNET42 is ERC721URIStorage { //nay la NFT dong, tu no bien doi theo data truyen vao. lam onchain va ko dung ben thu 3 luu tru
     address owner = msg.sender;
     using Strings for uint256;
     using Counters for Counters.Counter;
