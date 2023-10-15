@@ -1,17 +1,17 @@
 import { Upload } from "@aws-sdk/lib-storage";
 import { S3 } from "@aws-sdk/client-s3";
 import fs from "fs";
-import { NFT } from "../models/nft";
+import { NET42NftType } from "../models/net42";
 import logger from "../utils/log";
-import { S3_BUCKET } from "../config";
+import { AWS_ID, AWS_KEY, S3_BUCKET, S3_REGION } from "../config";
 
 const s3 = new S3({
   apiVersion: "2006-03-01",
   credentials: {
-    accessKeyId: process.env.AWS_ID!,
-    secretAccessKey: process.env.AWS_KEY!,
+    accessKeyId: AWS_ID,
+    secretAccessKey: AWS_KEY,
   },
-  region: process.env.S3_REGION!,
+  region: S3_REGION,
 });
 
 export const uploadToS3 = async (filePath: string, uploadedFilePath: string) => {
@@ -42,7 +42,7 @@ export const uploadToS3 = async (filePath: string, uploadedFilePath: string) => 
   }
 };
 
-export const uploadMetadataToS3 = async (data: NFT, filename: string) => {
+export const uploadMetadataToS3 = async (data: NET42NftType, filename: string) => {
   try {
     await s3.putObject({
       Bucket: S3_BUCKET,

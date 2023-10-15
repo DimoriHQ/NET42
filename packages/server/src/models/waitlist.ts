@@ -1,27 +1,31 @@
 import { dbCollection } from "../db/collection";
 import { Document, Collection } from "mongodb";
 import logger from "../utils/log";
+import { DB__NET42 } from "../config";
+import { createDBCollName } from "../db/createDBCollName";
 
 export type Waitlist = {
   email: string;
   time: Date;
 };
 
-type WaitlistDocument = Waitlist & {} & Document;
+type WaitlistDocument = Waitlist & Document;
+
+const collName = createDBCollName("waitlist");
 
 let waitlistColl: Collection<WaitlistDocument>;
 
-export const heyCollInit = async () => {
-  const { collection } = await dbCollection<WaitlistDocument>(process.env.DB__HEY!, process.env.DB__HEY_WAITLIST_COLLECTION!);
+export const waitlistCollInit = async () => {
+  const { collection } = await dbCollection<WaitlistDocument>(DB__NET42, collName);
   waitlistColl = collection;
 
   await waitlistColl.createIndex({ email: 1 });
   await waitlistColl.createIndex({ time: 1 });
 
-  logger.info({ thread: "db", message: "db inited" });
+  logger.info({ thread: "db", data: "waitlist inited" });
 };
 
-export const isExist = async (email: string): Promise<WaitlistDocument> => {
+export const isWaitlistExist = async (email: string): Promise<WaitlistDocument> => {
   const waitlist = await waitlistColl.findOne({ email });
   return waitlist;
 };

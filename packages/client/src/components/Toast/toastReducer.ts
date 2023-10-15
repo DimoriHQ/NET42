@@ -20,7 +20,7 @@ const toastReducer = createReducer(emptyToast, (builder) =>
       message: action.payload.message || "err:toast:empty-message",
       type: action.payload.type,
     };
-  })
+  }),
 );
 
 export default toastReducer;

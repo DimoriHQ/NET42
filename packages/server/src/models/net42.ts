@@ -1,26 +1,20 @@
 import * as ethers from "ethers";
-import abi from "../abi/NET42NFT.json";
 import { dbCollection } from "../db/collection";
-import { Document, Collection, WithId } from "mongodb";
+import { Document, Collection } from "mongodb";
 import { checkS3Exist, uploadMetadataToS3, uploadToS3 } from "../services/s3";
-import lodash from "lodash";
-import { IMAGE_DIR, IMAGE_PREFIX, S3_BUCKET, TEMPLATE_DIR } from "../config";
+import { DB__NET42, IMAGE_DIR, TEMPLATE_DIR } from "../config";
 import logger from "../utils/log";
 import Jimp from "jimp";
+import { createDBCollName } from "../db/createDBCollName";
+import { net42Contract } from "../services/ether";
 
-const httpProvider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL!);
-export const dimori = new ethers.Contract(process.env.NFT_CONTRACT_ADDRESS!, abi, httpProvider);
-
-export type NFT = {
+// NFT
+export type NET42NftType = {
   name: string;
-  image: any;
   description: string;
+  image: string;
 
   attributes: [
-    {
-      trait_type: "type";
-      value: string;
-    },
     {
       trait_type: "campaign_id";
       value: number;
@@ -29,32 +23,46 @@ export type NFT = {
       trait_type: "created_date";
       value: number;
     },
+    {
+      trait_type: "track";
+      value: number;
+    }?,
   ];
 
   seller_fee_basis_points: 0;
 
   compiler: "net42.run";
-  external_url: "https://net42.run/";
+  external_url: "https://net42.run";
 };
 
-type NFTDocument = NFT & { _id: number; owner: string } & Document;
-type DBNFT = WithId<NFTDocument>;
+export type NET42Base = {
+  _id: number;
+  owner: string;
 
-let nftColl: Collection<NFTDocument>;
+  campaignId: number;
+  createdDate: Date;
+  track?: number;
+};
+
+type NET42Document = NET42NftType & NET42Base & Document;
+
+let nftColl: Collection<NET42Document>;
+
+const collName = createDBCollName("nft");
 
 export const nftCollInit = async () => {
-  const { collection } = await dbCollection<NFTDocument>(process.env.DB__NET42!, process.env.DB__NET42__COLLECTION!);
+  const { collection } = await dbCollection<NET42Document>(DB__NET42, collName);
   nftColl = collection;
 
+  await nftColl.createIndex({ "attributes.[0].value": 1 });
   await nftColl.createIndex({ "attributes.[1].value": 1 });
   await nftColl.createIndex({ "attributes.[2].value": 1 });
-  await nftColl.createIndex({ "attributes.[3].value": 1 });
 
-  await nftColl.createIndex({ day: 1 });
-  await nftColl.createIndex({ level: 1 });
-  await nftColl.createIndex({ point: 1 });
+  await nftColl.createIndex({ campaignId: 1 });
+  await nftColl.createIndex({ createdDate: 1 });
+  await nftColl.createIndex({ track: 1 });
 
-  logger.info({ thread: "db", message: "db inited" });
+  logger.info({ thread: "db", data: "nft inited" });
 };
 
 const getNftByRange = async (day: number, level: number) => {
@@ -100,73 +108,35 @@ export const handleNftId = async (id: number) => {
     return;
   }
 
-  const owner = await dimori.ownerOf(id);
+  const owner = await net42Contract.ownerOf(id);
   const day = (await getDayOfNFT(id)).toNumber();
 
   const nft = await newNft(id, day);
-  // TO-DO:
-  await nftColl.insertOne({ ...nft, _id: id, owner, campaign_id: 0 });
+  await nftColl.insertOne({ ...nft, _id: id, owner, campaignId: 0, createdDate: new Date() });
 
   // push to s3
   await uploadMetadataToS3(nft, getJsonFilename(id));
 
   await genImage(id, nft);
   await uploadToS3(`${IMAGE_DIR}/${id}.png`, `${id}.png`);
-
-  // TO-DO: push to IPFS
-};
-
-const luckyTable = [1 / 300, 10 / 300, 30 / 300, 70 / 300, 189 / 300];
-const luckyLevelRange = [0, ...Array(10).fill(1), ...Array(30).fill(2), ...Array(70).fill(3), ...Array(189).fill(4)];
-const luckyMax = [1, 10, 30, 70, 189];
-const luckyLevel = [5, 4, 3, 2, 1];
-
-const range = [
-  [100, 100],
-  [95, 99],
-  [80, 94],
-  [50, 79],
-  [0, 49],
-];
-
-const color = ["#ffffff", "#ffffff", "#ffffff", "#ffffff", "#ffffff"];
-
-const randomLuckyLevel = async (day: number) => {
-  const current = lodash.sample(luckyLevelRange);
-  const max = luckyMax[current];
-
-  const count = await getNftByRange(day, current);
-  if (count >= max) {
-    return await randomLuckyLevel(day);
-  }
-
-  return current;
-};
-
-const randomRange = async (index: number) => {
-  return lodash.random(range[index][0], range[index][1]);
 };
 
 export const getTotalSupply = async (): Promise<number> => {
-  return (await dimori.totalSupply()) as number;
+  return (await net42Contract.totalSupply()) as number;
 };
 
-const getCurrentDay = async (): Promise<number> => {
-  return (await dimori.getCurrentDay()) as number;
-};
-
-const isExist = async (id: number): Promise<DBNFT> => {
+const isExist = async (id: number): Promise<NET42Document> => {
   const nft = await nftColl.findOne({ _id: id });
   return nft;
 };
 
 const getDayOfNFT = async (id: number) => {
-  const day = (await dimori.dayOfNFT(id)) as ethers.BigNumber;
+  const day = (await net42Contract.dayOfNFT(id)) as ethers.BigNumber;
 
   return day;
 };
 
-const dbNftToNft = (dbNft: DBNFT): NFT => {
+const dbNftToNft = (dbNft: NET42Document): NET42NftType => {
   return {
     name: `NET42 #${dbNft._id}`,
     image: genImageS3URL(dbNft._id),
@@ -174,75 +144,70 @@ const dbNftToNft = (dbNft: DBNFT): NFT => {
     attributes: dbNft.attributes,
     seller_fee_basis_points: 0,
     compiler: "net42.run",
-    external_url: "https://net42.run/",
+    external_url: "https://net42.run",
   };
 };
 
-const newNft = async (id: number, campaignId: number): Promise<NFT> => {
-  // TO-DO:
-  const nft: NFT = {
+const newNft = async (id: number, campaignId: number): Promise<NET42NftType> => {
+  const nft: NET42NftType = {
     name: `Dimori Campaign #${campaignId} - #${id}`,
     image: genImageS3URL(id),
     description: "",
     attributes: [
       {
-        trait_type: "type",
-        value: "",
-      },
-      {
         trait_type: "campaign_id",
-        value: 0,
+        value: campaignId,
       },
       {
         trait_type: "created_date",
-        value: 0,
+        value: Date.now(),
       },
     ],
     seller_fee_basis_points: 0,
     compiler: "net42.run",
-    external_url: "https://net42.run/",
+    external_url: "https://net42.run",
   };
 
   return nft;
 };
 
 const genImageS3URL = (id: number) => {
-  return `https://${S3_BUCKET}/images/${id}.png`;
+  return `https://${""}/images/${id}.png`;
 };
 
 const genMetadataS3URL = (id: number) => {
-  return `https://${S3_BUCKET}/${id}.json`;
+  return `https://${""}/${id}.json`;
 };
 
 const getJsonFilename = (id: number) => {
   return `${id}.json`;
 };
 
-const levelFromAttributes = (nft: NFT) => {
+const levelFromAttributes = (nft: NET42NftType) => {
   return nft.attributes[0].value;
 };
 
-const pointFromAttributes = (nft: NFT) => {
+const pointFromAttributes = (nft: NET42NftType) => {
   return nft.attributes[1].value;
 };
 
-const dayFromAttributes = (nft: NFT) => {
+const dayFromAttributes = (nft: NET42NftType) => {
   return nft.attributes[2].value;
 };
 
 // need to update match with dimori
-const genImage = async (id: number, nft: NFT) => {
+const genImage = async (id: number, nft: NET42NftType) => {
   // copy template and move to images
   const point = pointFromAttributes(nft);
 
-  let image = await Jimp.read(`${TEMPLATE_DIR}/${IMAGE_PREFIX}${levelFromAttributes(nft)}-1024.png`);
+  let image = await Jimp.read(`${TEMPLATE_DIR}/${""}${levelFromAttributes(nft)}-1024.png`);
 
   if (point === 0) {
-    image = await Jimp.read(`${TEMPLATE_DIR}/${IMAGE_PREFIX}id0-1024.png`);
+    image = await Jimp.read(`${TEMPLATE_DIR}/${""}id0-1024.png`);
   }
 
   if (point === 50) {
-    image = await Jimp.read(`${TEMPLATE_DIR}/${IMAGE_PREFIX}id50-1024.png`);
+    image = await Jimp.read(`${TEMPLATE_DIR}/${""}id50-1024.png`);
   }
 
   // const font = await Jimp.loadFont(Jimp.FONT_SANS_32_WHITE);
@@ -273,47 +238,9 @@ export const updateOwner = async (id: number) => {
     return;
   }
 
-  const owner = await dimori.ownerOf(id);
+  const owner = await net42Contract.ownerOf(id);
 
   logger.info({ thread: "model", model: "nft", message: `update owner ${id} ${owner}` });
 
   await nftColl.updateOne({ _id: id }, { $set: { owner } });
-};
-
-// delete
-export const leaderboard = async () => {
-  const cursor = nftColl.aggregate<{ address: string; point: number }>([
-    {
-      $group: {
-        _id: "$owner",
-        point: {
-          $sum: "$point",
-        },
-        count: {
-          $count: {},
-        },
-      },
-    },
-    {
-      $sort: {
-        point: -1,
-      },
-    },
-    {
-      $project: {
-        _id: 0,
-        address: "$_id",
-        point: "$point",
-        count: "$count",
-      },
-    },
-  ]);
-
-  const items: { address: string; point: number }[] = [];
-
-  for await (const item of cursor) {
-    items.push(item);
-  }
-
-  return items;
 };

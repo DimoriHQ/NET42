@@ -1,57 +1,72 @@
-import { getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit";
-import "@rainbow-me/rainbowkit/styles.css";
+import { InjectedConnector } from "@wagmi/core";
+import { mantleTestnet, polygonMumbai, scrollSepolia } from "@wagmi/core/chains";
+import { Web3AuthConnector } from "@web3auth/web3auth-wagmi-connector";
 import { Provider } from "react-redux";
-import { configureChains, createConfig, WagmiConfig } from "wagmi"; // wagmi, walletconnect
+import { WagmiConfig, configureChains, createConfig } from "wagmi";
 import { alchemyProvider } from "wagmi/providers/alchemy";
 import { publicProvider } from "wagmi/providers/public";
+import { useAppSelector } from "../../app/hooks";
 import { store } from "../../app/store";
+import { selectAuth } from "../../features/authentication/reducer";
+import { safeLoginParams } from "../../services/safe";
 import "../../styles/main.scss";
-import Footer from "../Footer/Footer";
-import Header from "../Header/Header";
 import PopupProvider from "../Popup/PopupProvider";
 import Router from "../Router/Router";
 import Toast from "../Toast/Toast";
 
-const App: React.FC = () => {
-  const { chains, publicClient } = configureChains(
-    [
-      // TO-DO: change to scroll, polygon, mantle
-    ],
-    [
-      alchemyProvider({
-        apiKey: import.meta.env.VITE_ALCHEMY_KEY!,
-      }),
-      publicProvider(),
-    ],
-  );
+// https://github.com/Web3Auth/web3auth-pnp-examples/tree/main/wagmi-connector/rainbowkit-react-modal-example
+// https://www.npmjs.com/package/web3-token
+// EIP-4361
+// https://eips.ethereum.org/EIPS/eip-4361
+// https://www.rainbowkit.com/docs/authentication
+// https://wagmi.sh/examples/sign-in-with-ethereu
 
-  const { connectors } = getDefaultWallets({
-    appName: "NET42.run",
-    projectId: import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID!,
+const testnetChains = [scrollSepolia, polygonMumbai, mantleTestnet];
+
+const App: React.FC = () => {
+  const auth = useAppSelector(selectAuth);
+
+  const { chains, publicClient, webSocketPublicClient } = configureChains(testnetChains, [
+    alchemyProvider({
+      apiKey: import.meta.env.VITE_ALCHEMY_KEY!,
+    }),
+    publicProvider(),
+  ]);
+
+  const connector = new Web3AuthConnector({
     chains,
+    options: {
+      web3AuthInstance: auth.web3AuthModalPack.web3Auth!,
+      loginParams: safeLoginParams,
+    },
   });
 
   const wagmiConfig = createConfig({
     autoConnect: true,
-    connectors,
+    connectors: [
+      connector,
+      new InjectedConnector({
+        chains,
+        options: {
+          name: "Injected",
+          shimDisconnect: true,
+        },
+      }),
+    ],
     publicClient,
+    webSocketPublicClient,
   });
 
   return (
     <WagmiConfig config={wagmiConfig}>
-      <RainbowKitProvider chains={chains}>
-        <Provider store={store}>
-          <div className="main-body w-full leading-6">
-            <Header />
-            <PopupProvider>
-              <Toast />
-              <Router />
-            </PopupProvider>
-            <Footer />
-          </div>
-        </Provider>
-      </RainbowKitProvider>
+      <Provider store={store}>
+        <PopupProvider>
+          <Router />
+          <Toast />
+        </PopupProvider>
+      </Provider>
     </WagmiConfig>
   );
 };
+
 export default App;
