@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract RunningNFT is ERC721URIStorage, Ownable {
+    address CampaignOwner = msg.sender;
     struct User {
         address userAddress; // Store the user's address
         uint256 kmGain;
@@ -26,9 +27,9 @@ contract RunningNFT is ERC721URIStorage, Ownable {
     mapping(uint256 =>mapping(string => Achievement)) public achievements;
     
                                                         //giai chay chi trao thuong cho 100 nguoi ve som nhat cac hang muc, neu khong thi dc NFT chuc mung
-    constructor() ERC721("RunningNFT", "RNF") {
+    constructor() ERC721("RunningNFT", "RNF") Ownable(CampaignOwner) {
         createAchievement(5, 300, "QmWhfxXWkHAzMZnF2JJv8DFH95sMFGvjEGCSAPcrr9whec","BM2023");
-        createAchievement(10, 300, "IPFS_CID","BM2023");
+        createAchievement(10, 300, "QmWhfxXWkHAzMZnF2JJv8DFH95sMFGvjEGCSAPcrr9whec","BM2023");
         createAchievement(21, 300, "QmWhfxXWkHAzMZnF2JJv8DFH95sMFGvjEGCSAPcrr9whec","BM2023");
         createAchievement(42, 300, "QmWhfxXWkHAzMZnF2JJv8DFH95sMFGvjEGCSAPcrr9whec","BM2023");
         createAchievement(1, 800, "QmWhfxXWkHAzMZnF2JJv8DFH95sMFGvjEGCSAPcrr9whec","BM2023"); // DNF achievement Did not Finish
@@ -40,18 +41,31 @@ contract RunningNFT is ERC721URIStorage, Ownable {
     }
 
     function claimed(uint256 userId, uint256 kmGain, string memory Campaign) public {     //ham nay de transferNFT cho nguoi thang giai
-        require(userId > 0 && userId <= 2000, "Invalid user ID");          //gioi han giai chay toi da 2000 nguoi
-        require(kmGain >= 0 && kmGain <= 42, "Invalid kmGain");             // so km ban chay duoc phai phu hop
+      //  require(users[userId].userAddress == msg.sender);       
+        require(userId > 0 && userId <= 2000, "Invalid user ID");          //gioi han giai chay toi da 1000 nguoi
+        require(kmGain >= 0 , "Invalid kmGain");             // so km ban chay duoc phai phu hop
         require(!claimedNFTsCampaign[userId][Campaign],"user already claimed reward in this Campaign");          
-        require(achievements[kmGain][Campaign].currentSupply < achievements[kmGain][Campaign].maxSupply, "We only have limited reward");
+        
         uint256 tokenId;
+        if (kmGain < 5){ 
+            kmGain = 1;
+        }
 
+        else if( kmGain >= 5 && kmGain <10){
+            kmGain = 5;
+        }
+        else if( kmGain >= 10 && kmGain <21){
+            kmGain = 10;
+        }
+        else if (kmGain >= 21 && kmGain < 42){
+            kmGain = 21;
+        }
+        else kmGain =42;
+        require(achievements[kmGain][Campaign].currentSupply < achievements[kmGain][Campaign].maxSupply, "We only have limited reward");
         tokenId = achievements[kmGain][Campaign].currentSupply + 1;
-            // _mint(users[userId].userAddress, tokenId);
             _mint(msg.sender, tokenId);
             _setTokenURI(tokenId, achievements[kmGain][Campaign].metadataCID);
             achievements[kmGain][Campaign].currentSupply++;
         claimedNFTsCampaign[userId][Campaign] = true;
-        users[userId] = User(users[userId].userAddress, kmGain, Campaign);
     }
 }
