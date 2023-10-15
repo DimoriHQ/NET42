@@ -1,55 +1,57 @@
-// SPDX-License-Identifier: None
+// SPDX-License-Identifier: MIT
+
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract RunningNFT is ERC721URIStorage, Ownable { //nay la NFT SE DUOC LUU BEN THU 3, IPFS HOAC WEB3 STORAGE
+contract RunningNFT is ERC721URIStorage, Ownable {
     struct User {
         address userAddress; // Store the user's address
         uint256 kmGain;
+        string codeCampaign;
     }
 
     mapping(uint256 => User) public users; // lay ID cho de quan ly
     mapping(uint256 => bool) public userClaimed; //kiem tra xem User da Claimed NFT chua
-
-    struct Achievement {
-        //tao struct cac giai NFT, 1 tuong ung ko hoan thanh
+    mapping(uint256 => mapping(string => bool)) public claimedNFTsCampaign; //kiem tra user da claimed NFT giai campaign chua
+    
+    struct Achievement {                  //tao struct cac giai NFT, 1 tuong ung ko hoan thanh
         uint256 kilometers;
         uint256 maxSupply;
         uint256 currentSupply;
         string metadataCID;
     }
 
-    mapping(uint256 => Achievement) public achievements;
-
-    //giai chay chi trao thuong cho 100 nguoi ve som nhat cac hang muc, neu khong thi dc NFT chuc mung
+    mapping(uint256 =>mapping(string => Achievement)) public achievements;
+    
+                                                        //giai chay chi trao thuong cho 100 nguoi ve som nhat cac hang muc, neu khong thi dc NFT chuc mung
     constructor() ERC721("RunningNFT", "RNF") {
-        createAchievement(5, 100, "IPFS_CID_5KM");
-        createAchievement(10, 100, "IPFS_CID_10KM");
-        createAchievement(21, 100, "IPFS_CID_21KM");
-        createAchievement(42, 100, "IPFS_CID_42KM");
-        createAchievement(1, 600, "IPFS_CID_DNF"); // DNF achievement Did not Finish
+        createAchievement(5, 300, "QmWhfxXWkHAzMZnF2JJv8DFH95sMFGvjEGCSAPcrr9whec","BM2023");
+        createAchievement(10, 300, "IPFS_CID","BM2023");
+        createAchievement(21, 300, "QmWhfxXWkHAzMZnF2JJv8DFH95sMFGvjEGCSAPcrr9whec","BM2023");
+        createAchievement(42, 300, "QmWhfxXWkHAzMZnF2JJv8DFH95sMFGvjEGCSAPcrr9whec","BM2023");
+        createAchievement(1, 800, "QmWhfxXWkHAzMZnF2JJv8DFH95sMFGvjEGCSAPcrr9whec","BM2023"); // DNF achievement Did not Finish
     }
 
-    function createAchievement(uint256 kilometers, uint256 maxSupply, string memory metadataCID) public onlyOwner {
-        require(achievements[kilometers].kilometers == 0, "Achievement already exists");
-        achievements[kilometers] = Achievement(kilometers, maxSupply, 0, metadataCID);
+    function createAchievement(uint256 kilometers, uint256 maxSupply, string memory metadataCID, string memory Campaign) public onlyOwner {
+        require(achievements[kilometers][Campaign].kilometers == 0, "Achievement already exists");
+        achievements[kilometers][Campaign] = Achievement(kilometers, maxSupply, 0, metadataCID);
     }
 
-    function claimed(uint256 userId, uint256 kmGain) public onlyOwner {
-        //ham nay de transferNFT cho nguoi thang giai
-        require(userId > 0 && userId <= 1000, "Invalid user ID"); //gioi han giai chay toi da 1000 nguoi
-        require(kmGain >= 0 && kmGain <= 42, "Invalid kmGain"); // so km ban chay duoc phai phu hop
-        require(!userClaimed[userId], "this user already claimed");
-        require(achievements[kmGain].currentSupply < achievements[kmGain].maxSupply, "We only have limited reward");
+    function claimed(uint256 userId, uint256 kmGain, string memory Campaign) public {     //ham nay de transferNFT cho nguoi thang giai
+        require(userId > 0 && userId <= 2000, "Invalid user ID");          //gioi han giai chay toi da 2000 nguoi
+        require(kmGain >= 0 && kmGain <= 42, "Invalid kmGain");             // so km ban chay duoc phai phu hop
+        require(!claimedNFTsCampaign[userId][Campaign],"user already claimed reward in this Campaign");          
+        require(achievements[kmGain][Campaign].currentSupply < achievements[kmGain][Campaign].maxSupply, "We only have limited reward");
         uint256 tokenId;
-        require(achievements[kmGain].currentSupply < achievements[kmGain].maxSupply, "We only have limited reward");
-        tokenId = achievements[kmGain].currentSupply + 1;
-        _mint(users[userId].userAddress, tokenId);
-        _setTokenURI(tokenId, achievements[kmGain].metadataCID);
-        achievements[kmGain].currentSupply++;
-        userClaimed[userId] = true;
-        users[userId] = User(users[userId].userAddress, kmGain);
+
+        tokenId = achievements[kmGain][Campaign].currentSupply + 1;
+            // _mint(users[userId].userAddress, tokenId);
+            _mint(msg.sender, tokenId);
+            _setTokenURI(tokenId, achievements[kmGain][Campaign].metadataCID);
+            achievements[kmGain][Campaign].currentSupply++;
+        claimedNFTsCampaign[userId][Campaign] = true;
+        users[userId] = User(users[userId].userAddress, kmGain, Campaign);
     }
 }
