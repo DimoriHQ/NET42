@@ -14,7 +14,7 @@ contract RunningNFT is ERC721URIStorage, Ownable {
     }
 
     mapping(uint256 => User) public users; // lay ID cho de quan ly
-    mapping(uint256 => bool) public userClaimed; //kiem tra xem User da Claimed NFT chua
+    // mapping(uint256 => bool) public userClaimed; //kiem tra xem User da Claimed NFT chua
     mapping(uint256 => mapping(string => bool)) public claimedNFTsCampaign; //kiem tra user da claimed NFT giai campaign chua
     
     struct Achievement {                  //tao struct cac giai NFT, 1 tuong ung ko hoan thanh
@@ -41,7 +41,7 @@ contract RunningNFT is ERC721URIStorage, Ownable {
     }
 
     function claimed(uint256 userId, uint256 kmGain, string memory Campaign) public {     //ham nay de transferNFT cho nguoi thang giai
-      //  require(users[userId].userAddress == msg.sender);       
+        // require(users[userId].userAddress == msg.sender);       
         require(userId > 0 && userId <= 2000, "Invalid user ID");          //gioi han giai chay toi da 1000 nguoi
         require(kmGain >= 0 , "Invalid kmGain");             // so km ban chay duoc phai phu hop
         require(!claimedNFTsCampaign[userId][Campaign],"user already claimed reward in this Campaign");          
@@ -66,6 +66,12 @@ contract RunningNFT is ERC721URIStorage, Ownable {
             _mint(msg.sender, tokenId);
             _setTokenURI(tokenId, achievements[kmGain][Campaign].metadataCID);
             achievements[kmGain][Campaign].currentSupply++;
+
         claimedNFTsCampaign[userId][Campaign] = true;
+
+        User storage user = users[userId];
+        user.userAddress = msg.sender;
+        user.kmGain = kmGain;
+        user.codeCampaign = Campaign;
     }
 }
