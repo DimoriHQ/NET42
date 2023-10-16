@@ -5,7 +5,7 @@ import Header from "../Header/Header";
 
 const Layout: React.FC = () => {
   return (
-    <div className="mx-auto px-6 container flex flex-col gap-12 justify-between min-h-screen">
+    <div className="flex flex-col gap-12 justify-between min-h-screen">
       <Header />
       <Outlet />
       <Footer />

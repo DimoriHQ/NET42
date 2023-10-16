@@ -2,13 +2,15 @@ import { InjectedConnector } from "@wagmi/core";
 import { mantleTestnet, polygonMumbai, scrollSepolia } from "@wagmi/core/chains";
 import { Web3AuthConnector } from "@web3auth/web3auth-wagmi-connector";
 import { Provider } from "react-redux";
+import { useEffectOnce } from "usehooks-ts";
 import { WagmiConfig, configureChains, createConfig } from "wagmi";
 import { alchemyProvider } from "wagmi/providers/alchemy";
 import { publicProvider } from "wagmi/providers/public";
 import { useAppSelector } from "../../app/hooks";
 import { store } from "../../app/store";
 import { selectAuth } from "../../features/authentication/reducer";
-import { safeLoginParams } from "../../services/safe";
+import { web3AuthModalPack } from "../../features/authentication/types";
+import { modalConfig, openLoginAdapter, safeLoginParams, safeScrollOptions } from "../../services/safe";
 import "../../styles/main.scss";
 import PopupProvider from "../Popup/PopupProvider";
 import Router from "../Router/Router";
@@ -25,6 +27,10 @@ const testnetChains = [scrollSepolia, polygonMumbai, mantleTestnet];
 
 const App: React.FC = () => {
   const auth = useAppSelector(selectAuth);
+
+  useEffectOnce(() => {
+    web3AuthModalPack.init({ options: safeScrollOptions, adapters: [openLoginAdapter], modalConfig });
+  });
 
   const { chains, publicClient, webSocketPublicClient } = configureChains(testnetChains, [
     alchemyProvider({

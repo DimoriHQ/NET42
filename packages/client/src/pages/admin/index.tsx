@@ -1,9 +1,9 @@
 import Avatar from "@mui/joy/Avatar";
 import List from "@mui/joy/List";
-import ListDivider from "@mui/joy/ListDivider";
 import ListItem from "@mui/joy/ListItem";
 import ListItemDecorator from "@mui/joy/ListItemDecorator";
 import React from "react";
+import { Link } from "react-router-dom";
 
 const Admin: React.FC = () => {
   return (
@@ -19,18 +19,14 @@ const Admin: React.FC = () => {
       }}
     >
       <ListItem>
-        <ListItemDecorator>
-          <Avatar size="sm" src="/static/images/avatar/1.jpg" />
-        </ListItemDecorator>
-        Create Campaign
+        <Link to="/admin/create" className="flex items-center">
+          <ListItemDecorator>
+            <Avatar size="sm" src="/static/images/avatar/1.jpg" />
+          </ListItemDecorator>
+          Create Campaign
+        </Link>
       </ListItem>
-      <ListDivider inset="gutter" />
-      <ListItem>
-        <ListItemDecorator>
-          <Avatar size="sm" src="/static/images/avatar/2.jpg" />
-        </ListItemDecorator>
-        Boyd Burt
-      </ListItem>
+      {/* <ListDivider inset="gutter" /> */}
     </List>
   );
 };

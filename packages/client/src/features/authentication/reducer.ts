@@ -9,7 +9,7 @@ import { Response } from "../../services/response";
 import { defaultAuthReducer, tokenStorage } from "./types";
 
 export const setProvider = createAction<ethers.providers.Web3Provider>("auth/setProvider");
-export const setToken = createAction<ethers.providers.Web3Provider>("auth/setToken");
+export const clearAuth = createAction("auth/clearAuth");
 
 export const verify = createAsyncThunk(
   "auth/verify",
@@ -58,7 +58,6 @@ const authReducer = createReducer(defaultAuthReducer, (builder) => {
     .addCase(verify.fulfilled, (state, action) => {
       state.isVerifyInit = true;
       state.isVerifyLoading = false;
-      console.log(action.payload, "long");
       state.isVerify = action.payload.isAuth;
       state.isAdmin = action.payload.isAdmin;
       state.token = action.payload.token;
@@ -68,6 +67,14 @@ const authReducer = createReducer(defaultAuthReducer, (builder) => {
       state.isVerifyLoading = false;
       state.isVerify = false;
       state.isAdmin = false;
+    })
+    .addCase(clearAuth, (state) => {
+      state.isVerifyInit = true;
+      state.isVerifyLoading = false;
+      state.isVerify = false;
+      state.isAdmin = false;
+      state.token = "";
+      tokenStorage.set("");
     });
 });
 

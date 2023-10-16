@@ -4,7 +4,8 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useAccount } from "wagmi";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { selectAuth, setProvider, verify } from "../../features/authentication/reducer";
+import { clearAuth, selectAuth, setProvider, verify } from "../../features/authentication/reducer";
+import Section from "../Layout/Section";
 
 const Header: React.FC = () => {
   const auth = useAppSelector(selectAuth);
@@ -15,10 +16,11 @@ const Header: React.FC = () => {
     await auth.web3AuthModalPack.signIn();
     const provider = new ethers.providers.Web3Provider(auth.web3AuthModalPack.getProvider()!);
     dispatch(setProvider(provider));
-    dispatch(verify({ address }));
+    dispatch(verify({ address: (await provider.getSigner().getAddress()) as `0x${string}` }));
   };
 
   const logout = async () => {
+    dispatch(clearAuth());
     await disconnect();
     await auth.web3AuthModalPack.signOut();
   };
@@ -28,6 +30,9 @@ const Header: React.FC = () => {
       return (
         <div>
           <div>Connected: {address}</div>
+          <div>
+            <Link to={`/profile/${address}`}>My profile</Link>
+          </div>
           <button onClick={logout}>Logout</button>
         </div>
       );
@@ -41,10 +46,14 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="flex gap-4 justify-between">
-      <Link to="/">Logo</Link>
-      <div>{Profile()}</div>
-    </header>
+    <Section>
+      <header className="flex gap-4 justify-between py-6">
+        <Link to="/">
+          <img src="/images/NET42.png" width={100} />
+        </Link>
+        <div>{Profile()}</div>
+      </header>
+    </Section>
   );
 };
 

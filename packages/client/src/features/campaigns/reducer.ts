@@ -4,13 +4,13 @@ import { RootState } from "../../app/store";
 import { setToast } from "../../components/Toast/toastReducer";
 import config from "../../config";
 import { Response } from "../../services/response";
-import { CampaignType, defaultCampaignReducer, emptyCampaign } from "./types";
+import { CampaignType, RawCampaignType, defaultCampaignReducer, emptyCampaign, rawToCampaignType } from "./types";
 
 export const getCampaigns = createAsyncThunk("campaign/getCampaigns", async (_, { dispatch }): Promise<CampaignType[]> => {
   try {
-    const { data } = await axios.get<Response<CampaignType[]>>(`${config.apiURL}/v1/campaigns`);
+    const { data } = await axios.get<Response<RawCampaignType[]>>(`${config.apiURL}/v1/campaigns`);
     if (data.status) {
-      return data.data;
+      return data.data.map((campaign) => rawToCampaignType(campaign));
     }
 
     dispatch(setToast({ show: true, title: "", message: data.message.text, type: "error" }));
@@ -21,20 +21,29 @@ export const getCampaigns = createAsyncThunk("campaign/getCampaigns", async (_, 
   }
 });
 
-export const createCampaign = createAsyncThunk("campaign/createCampaign", async ({ campaign }: { campaign: CampaignType }, { dispatch }): Promise<CampaignType[]> => {
-  try {
-    const { data } = await axios.post<Response<CampaignType[]>>(`${config.apiURL}/v1/campaign`, campaign);
-    if (data.status) {
-      return data.data;
+export const createCampaign = createAsyncThunk(
+  "campaign/createCampaign",
+  async ({ campaign, callback }: { campaign: FormData; callback: (last: CampaignType) => void }, { dispatch }): Promise<CampaignType[]> => {
+    try {
+      const { data } = await axios.post<Response<CampaignType[]>>(`${config.apiURL}/v1/campaign`, campaign, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      if (data.status) {
+        dispatch(setToast({ show: true, title: "", message: "Create campaign success", type: "success" }));
+        callback(data.data[data.data.length - 1]);
+        return data.data;
+      }
+
+      dispatch(setToast({ show: true, title: "", message: data.message.text, type: "error" }));
+
+      return [];
+    } catch (error) {
+      return [];
     }
-
-    dispatch(setToast({ show: true, title: "", message: data.message.text, type: "error" }));
-
-    return [];
-  } catch (error) {
-    return [];
-  }
-});
+  },
+);
 
 export const getCampaign = createAsyncThunk("campaign/getCampaign", async (_, { dispatch }): Promise<CampaignType> => {
   try {
