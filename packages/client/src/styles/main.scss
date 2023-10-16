@@ -9,3 +9,8 @@
   --tw-bg-opacity: 1;
   background-color: rgb(48 86 211 / var(--tw-bg-opacity));
 }
+
+body {
+  background: url('../../public/images/background.jpeg') 50%;
+  background-attachment: fixed;
+}

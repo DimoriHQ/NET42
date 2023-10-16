@@ -24,7 +24,6 @@ const Home: React.FC = () => {
     <>
       <Hero />
       <Claimable />
-      <Campaigns />
       <FeaturedUsers />
     </>
   );

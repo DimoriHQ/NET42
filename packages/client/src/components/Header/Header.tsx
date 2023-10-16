@@ -1,11 +1,11 @@
 import { disconnect } from "@wagmi/core";
 import { ethers } from "ethers";
 import React from "react";
-import { Link } from "react-router-dom";
 import { useAccount } from "wagmi";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { clearAuth, selectAuth, setProvider, verify } from "../../features/authentication/reducer";
 import Section from "../Layout/Section";
+import { Button, Link } from "@mui/joy";
 
 const Header: React.FC = () => {
   const auth = useAppSelector(selectAuth);
@@ -28,19 +28,22 @@ const Header: React.FC = () => {
   const Profile = () => {
     if (isConnected) {
       return (
+        
         <div>
-          <div>Connected: {address}</div>
           <div>
-            <Link to={`/profile/${address}`}>My profile</Link>
+            <Button color="neutral" variant="solid"><a href={`/profile/${address}`}>My profile: {address.slice(0, 8)}</a></Button>
+            <Button color="danger" onClick={logout}>
+          Logout
+          </Button>
           </div>
-          <button onClick={logout}>Logout</button>
+          
         </div>
       );
     } else {
       return (
-        <button className="" onClick={connect}>
+        <Button color="primary" onClick={connect}>
           Connect
-        </button>
+          </Button>
       );
     }
   };
@@ -48,7 +51,7 @@ const Header: React.FC = () => {
   return (
     <Section>
       <header className="flex gap-4 justify-between py-6">
-        <Link to="/">
+        <Link href="/">
           <img src="/images/NET42.png" width={100} />
         </Link>
         <div>{Profile()}</div>
