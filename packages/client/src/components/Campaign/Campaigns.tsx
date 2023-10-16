@@ -1,17 +1,27 @@
 import React from "react";
-import { useAppSelector } from "../../app/hooks";
-import { selectCampaign } from "../../features/campaigns/reducer";
+import { useEffectOnce } from "usehooks-ts";
+import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import { getCampaigns, selectCampaign } from "../../features/campaigns/reducer";
+import Section from "../Layout/Section";
 import Campaign from "./Campaign";
 
 const Campaigns: React.FC = () => {
   const campaign = useAppSelector(selectCampaign);
+  const dispatch = useAppDispatch();
+
+  useEffectOnce(() => {
+    dispatch(getCampaigns());
+  });
 
   return (
-    <section>
-      campaigns
-      {campaign.campaigns.map((item) => (
-        <Campaign campaign={item} />
-      ))}
+    <section className="bg-gray-200 p-6">
+      <Section>
+        <div className="grid grid-cols-3">
+          {campaign.campaigns.map((item) => (
+            <Campaign campaign={item} key={item._id} />
+          ))}
+        </div>
+      </Section>
     </section>
   );
 };

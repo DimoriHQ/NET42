@@ -1,3 +1,6 @@
+export const STAGE = process.env.STAGE!;
+export const isProduction = STAGE === "production";
+
 export const MONGODB_URL = process.env.MONGODB_URL!;
 
 export const TEMPLATE_DIR = process.env.TEMPLATE_DIR!;
@@ -17,3 +20,5 @@ export const AWS_KEY = process.env.AWS_KEY!;
 
 export const S3_BUCKET = process.env.S3_BUCKET!;
 export const S3_REGION = process.env.S3_REGION!;
+
+export const WEB3_STORAGE_API_TOKEN = process.env.WEB3_STORAGE_API_TOKEN!;

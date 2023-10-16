@@ -6,10 +6,12 @@ import Chip from "@mui/joy/Chip";
 import IconButton from "@mui/joy/IconButton";
 import Typography from "@mui/joy/Typography";
 import React from "react";
+import Section from "../Layout/Section";
 
 const Hero: React.FC = () => {
   return (
-    <div>
+    <Section>
+      hero/Banner
       <Card sx={{ gap: 2, maxWidth: 300 }}>
         <Chip size="sm" variant="soft" sx={{ alignSelf: "flex-start", borderRadius: "xl" }}>
           New
@@ -18,13 +20,13 @@ const Hero: React.FC = () => {
           <BookmarkOutlinedIcon />
         </IconButton>
         <Typography level="title-lg" fontWeight="lg">
-          Learn how to build super fast websites.
+          Lear more about NET42.run
         </Typography>
         <Button variant="solid" endDecorator={<KeyboardArrowRightIcon />}>
           Read more
         </Button>
       </Card>
-    </div>
+    </Section>
   );
 };
 

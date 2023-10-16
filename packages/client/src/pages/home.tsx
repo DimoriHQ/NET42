@@ -4,9 +4,11 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import React from "react";
 import { useEffectOnce } from "usehooks-ts";
 import { useAppDispatch } from "../app/hooks";
+import Campaigns from "../components/Campaign/Campaigns";
+import Claimable from "../components/Home/Claimable";
+import FeaturedUsers from "../components/Home/FeaturedUsers";
 import Hero from "../components/Home/Hero";
 import { getCampaigns } from "../features/campaigns/reducer";
-import Campaigns from "./campaigns";
 
 dayjs.extend(relativeTime);
 dayjs.extend(localizedFormat);
@@ -21,7 +23,9 @@ const Home: React.FC = () => {
   return (
     <>
       <Hero />
+      <Claimable />
       <Campaigns />
+      <FeaturedUsers />
     </>
   );
 };

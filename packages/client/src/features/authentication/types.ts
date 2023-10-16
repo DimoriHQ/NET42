@@ -1,10 +1,9 @@
 import { Web3AuthModalPack } from "@safe-global/auth-kit";
 import { ethers } from "ethers";
 import LocalStorage from "../../services/localStorage";
-import { modalConfig, openLoginAdapter, safeScrollOptions, web3AuthConfig } from "../../services/safe";
+import { web3AuthConfig } from "../../services/safe";
 
 export const web3AuthModalPack = new Web3AuthModalPack(web3AuthConfig);
-await web3AuthModalPack.init({ options: safeScrollOptions, adapters: [openLoginAdapter], modalConfig });
 
 export const tokenStorage = new LocalStorage<string>("token");
 

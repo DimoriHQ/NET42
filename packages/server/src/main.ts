@@ -28,13 +28,17 @@ import { claim } from "./action/claim";
 import { profile } from "./action/profile";
 import { verify } from "./action/verify";
 import { authorizeStrava, checkpointsStrava, totalDistanceStrava, trackingDataStrava } from "./action/trackingData/stravaTrackingData";
+import { isProduction } from "./config";
+import multer from "@koa/multer";
+import { campaignCollInit } from "./models/campaign";
+import { waitlistCollInit } from "./models/waitlist";
 
 // create app
 const app = new Koa();
 
 app.use(init);
 app.use(cacheMiddleware);
-// app.use(koaLogger());
+if (isProduction) app.use(koaLogger());
 app.use(helmet());
 app.use(helmet.hidePoweredBy());
 app.use(corsMiddleware);
@@ -42,11 +46,15 @@ app.use(bodyParser());
 app.use(auth);
 app.use(admin);
 
+const upload = multer();
+
 (async function main() {
   // db
   await client.connect();
   client.on("close", () => client.connect());
+  await campaignCollInit();
   await nftCollInit();
+  await waitlistCollInit();
 
   // app router
   const router = new Router({ prefix: "/v1" });
@@ -57,12 +65,47 @@ app.use(admin);
   router.post("/waitlist", saveWaitlist);
   router.post("/auth/verify", verify);
   router.get("/campaigns", getCampaigns);
-  router.post("/campaign", createCampaign);
+
+  router.post(
+    "/campaign",
+    upload.fields([
+      { name: "name", maxCount: 1 },
+      { name: "description", maxCount: 1 },
+
+      { name: "image", maxCount: 1 },
+      { name: "banner", maxCount: 1 },
+      { name: "registeredImage", maxCount: 1 },
+      { name: "unfinishedImage", maxCount: 1 },
+      { name: "finishedImage", maxCount: 1 },
+
+      { name: "imageURL", maxCount: 1 },
+      { name: "bannerURL", maxCount: 1 },
+      { name: "registeredImageURL", maxCount: 1 },
+      { name: "unfinishedImageURL", maxCount: 1 },
+      { name: "finishedImageURL", maxCount: 1 },
+
+      { name: "registerTime", maxCount: 1 },
+      { name: "startTime", maxCount: 1 },
+      { name: "hasEndTime", maxCount: 1 },
+      { name: "endTime", maxCount: 1 },
+
+      { name: "trackable", maxCount: 1 },
+      { name: "standardCode", maxCount: 1 },
+      { name: "stravaData", maxCount: 1 },
+      { name: "tracksValue[]" },
+      { name: "tracksImage[]" },
+      { name: "tracksImageURL[]" },
+    ]),
+    createCampaign,
+  );
+
   router.get("/campaign/:id", getCampaigns);
   router.put("/campaign/:id", editCampaign);
   router.put("/campaign/:id/users", usersTrackCampaign);
+
   router.get("/claimable", getClaimable);
   router.get("/campaign/claim/:id", claim);
+
   router.get("/profile", profile);
   router.post("/nft/update-owner", profile);
   router.get("/authorize-strava", authorizeStrava);
