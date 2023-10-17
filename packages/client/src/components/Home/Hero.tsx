@@ -22,7 +22,8 @@ const Hero: React.FC = () => {
           </div>
         </Section>
       </section>
-      <main ref={ref}>
+      <div ref={ref} className="py-12"><br /></div>
+      <main className="main flex gap-4 justify-between py-6">
         <Section>
           <div className="hero-desc">
             <p>
