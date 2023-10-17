@@ -47,6 +47,7 @@
 .hero-desc {
     height: 40vh;
     color: white;
+    display: flex;
     justify-content: center;
     align-items: start;
 }

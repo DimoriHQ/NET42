@@ -3,6 +3,7 @@ import Button from "@mui/joy/Button";
 import React, { useRef } from "react";
 import Section from "../Layout/Section";
 import "../../styles/Hero.css";
+import { Card } from "@mui/joy";
 
 const Hero: React.FC = () => {
   const ref = useRef(null);
@@ -22,9 +23,9 @@ const Hero: React.FC = () => {
           </div>
         </Section>
       </section>
-      <main ref={ref}>
+      <main ref={ref} className="hero-desc">
         <Section>
-          <div className="hero-desc">
+          <div className="hero-det">
             <p>
               Welcome to the world of NFTerraPace, where every step you take not only boosts your health but also fuels a brighter future. We're on a mission to infuse running with
               purpose and passion, driven by the magic of NFTs and the boundless potential of Web3.
