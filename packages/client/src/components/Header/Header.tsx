@@ -5,7 +5,10 @@ import { useAccount } from "wagmi";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { clearAuth, selectAuth, setProvider, verify } from "../../features/authentication/reducer";
 import Section from "../Layout/Section";
-import { Button, Link } from "@mui/joy";
+import { Box, Button, Link } from "@mui/joy";
+import Typography from '@mui/joy/Typography';
+import "../../styles/header.css";
+// import ColorSchemeToggle from './ColorSchemeToggle';
 
 const Header: React.FC = () => {
   const auth = useAppSelector(selectAuth);
@@ -27,8 +30,7 @@ const Header: React.FC = () => {
 
   const Profile = () => {
     if (isConnected) {
-      return (
-        
+      return (  
         <div>
           <div>
             <Button color="neutral" variant="solid"><a href={`/profile/${address}`}>My profile: {address.slice(0, 8)}</a></Button>
@@ -43,20 +45,59 @@ const Header: React.FC = () => {
       return (
         <Button color="primary" onClick={connect}>
           Connect
-          </Button>
+        </Button>
       );
     }
   };
 
   return (
-    <Section>
-      <header className="flex gap-4 justify-between py-6">
-        <Link href="/">
-          <img src="/images/NET42.png" width={100} />
-        </Link>
-        <div>{Profile()}</div>
+      <header className="header">
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          width: '100%',
+          top: 0,
+          px: 1,
+          py: 1,
+          zIndex: 10000,
+          // backgroundColor: 'black',
+          // opacity: 0.8,
+          // borderBottom: '1px solid',
+          borderColor: 'divider',
+          position: 'sticky',
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 1.5,
+          }}
+        >
+          <Link href="/">
+            <img src="/images/n42.png" width={100} />
+          </Link>
+          <Typography component="h1" fontSize="lg" fontWeight="xl" textColor="white">
+            Net Forty-Two
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 3 }}>
+          <Box
+            sx={{
+              gap: 1,
+              alignItems: 'center',
+              display: { xs: 'none', sm: 'flex' },
+            }}
+          >
+            <div>{Profile()}</div>
+          </Box>
+        </Box>
+      </Box>
       </header>
-    </Section>
   );
 };
 
