@@ -14,10 +14,10 @@ const Claimable: React.FC = () => {
             spacing={2}
           >
             {[
-              { name: "NFT HUE 42km", quotes: "lalalalallalala", nft: "../../../public/images/oct23-42k.png" },
-              { name: "NFT SAI GON 21km", quotes: "lalalalallalala", nft: "../../../public/images/oct23-21k.png" },
-              { name: "NFT HA NOI 10km", quotes: "lalalalallalala", nft: "../../../public/images/oct23-10k.png" },
-              { name: "NFT SAI GON 42km", quotes: "lalalalallalala", nft: "../../../public/images/oct23-42k.png" },
+              { name: "NFT HUE 42km", quotes: "lalalalallalala", nft: "/images/oct23-42k.png" },
+              { name: "NFT SAI GON 21km", quotes: "lalalalallalala", nft: "/images/oct23-21k.png" },
+              { name: "NFT HA NOI 10km", quotes: "lalalalallalala", nft: "/images/oct23-10k.png" },
+              { name: "NFT SAI GON 42km", quotes: "lalalalallalala", nft: "/images/oct23-42k.png" },
             ].map((name, index) => {
               return (
                 <Grid key={index} xs={12} sm={6} md={3} display="flex" justifyContent="center" alignItems="center" minHeight={180}>
