@@ -7,7 +7,7 @@ import Section from "../Layout/Section";
 const Claimable: React.FC = () => {
   return (
     <Section>
-      <div className="claimable">
+      <div className="claimable" id='claimable'>
       <Box sx={{ flexGrow: 1 }}>
           <Grid
             container

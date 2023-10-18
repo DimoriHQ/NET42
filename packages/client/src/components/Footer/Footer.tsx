@@ -4,16 +4,16 @@ import { useAppSelector } from "../../app/hooks";
 import { selectAuth } from "../../features/authentication/reducer";
 import Section from "../Layout/Section";
 import "../../styles/Footer.css";
-import FacebookIcon from '@mui/icons-material/Facebook';
-import TwitterIcon from '@mui/icons-material/Twitter';
-import LinkedInIcon from '@mui/icons-material/LinkedIn';
-import InstagramIcon from '@mui/icons-material/Instagram';
+import AndroidIcon from '@mui/icons-material/Android';
+import TagIcon from '@mui/icons-material/Tag';
+import EmailIcon from '@mui/icons-material/Email';
+import TelegramIcon from '@mui/icons-material/Telegram';
 
 const Footer: React.FC = () => {
   const auth = useAppSelector(selectAuth);
 
   return (
-    <footer className="footer">
+    <footer className="footer" id='footer'>
       <Section>
         <div>
           <div className="waves">
@@ -25,22 +25,22 @@ const Footer: React.FC = () => {
           <ul className="social-icon">
             <li className="social-icon__item">
               <a className="social-icon__link" href="#">
-                <FacebookIcon />
+                <AndroidIcon />
               </a>
             </li>
             <li className="social-icon__item">
               <a className="social-icon__link" href="#">
-                <TwitterIcon />
+                <TelegramIcon />
               </a>
             </li>
             <li className="social-icon__item">
               <a className="social-icon__link" href="#">
-                <LinkedInIcon />
+                <EmailIcon />
               </a>
             </li>
             <li className="social-icon__item">
               <a className="social-icon__link" href="#">
-                <InstagramIcon />
+                <TagIcon />
               </a>
             </li>
           </ul>

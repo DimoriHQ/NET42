@@ -9,7 +9,7 @@ export const authorize = (req) => {
 
 export const getToken = async (code: string) => {
   let token = await axios.post(`${process.env.STRAVA_TOKEN_LINK}?client_id=${process.env.STRAVA_CLIENT_ID}&client_secret=${process.env.STRAVA_CLIENT_SECRET}&code=${code}&grant_type=authorization_code`);
-  return token.data.access_token
+  return token.data.refresh_token
 }
 
 export const getTrackingData = async (access_token: string, registertime: number, endtime: number, page: number, per_page: number) => {

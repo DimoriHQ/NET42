@@ -1,5 +1,5 @@
 .hero {
-    height: 100vh;
+    height: 50vh;
     /* Flexbox stuff */
     display: flex;
     justify-content: center;
@@ -7,7 +7,9 @@
     
     /* Text styles */
     text-align: center;
-    color: white; /* ADD THIS LINE */
+    color: black; /* ADD THIS LINE */
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    background: url('/images/background.jpeg') 40% 40%;
 }
 
 .hero-inner {
@@ -16,11 +18,9 @@
 
 .hero h1 {
     /* Text styles */
-    font-size: 5em;
-    
-    /* Margins */
-    margin-top: 0;
-    margin-bottom: 0.5em;
+    font-size: 4em;
+    text-align: center;
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
 }
 
 .hero .btn {
@@ -45,7 +45,7 @@
 }
 
 .hero-desc {
-    height: 40vh;
+    height: 50vh;
     color: white;
     display: flex;
     justify-content: center;

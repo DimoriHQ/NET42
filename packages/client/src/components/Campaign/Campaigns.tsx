@@ -18,7 +18,7 @@ const Campaigns: React.FC = () => {
   return (
     <section className="bg-gray-200 p-6">
       <Section>
-        <div className="grid grid-cols-3">
+        <div className="grid grid-cols-3" id='Campaigns'>
         <Box sx={{ flexGrow: 1 }}>
           <Grid
             container

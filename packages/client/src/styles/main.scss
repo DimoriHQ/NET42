@@ -10,7 +10,7 @@
   background-color: rgb(48 86 211 / var(--tw-bg-opacity));
 }
 
-body {
-  background: url('/images/background.jpeg') 50%;
-  background-attachment: fixed;
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 300px;
 }

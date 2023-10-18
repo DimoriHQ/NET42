@@ -17,7 +17,7 @@ const FeaturedUsers: React.FC = () => {
   ];
 
   return (
-    <div className="featuredUsers">
+    <div className="featuredUsers" id='featureUsers'>
       <Section>
         <Table sx={{backgroundColor: "white"}}>
           <thead>

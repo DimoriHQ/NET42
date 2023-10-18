@@ -56,7 +56,7 @@ const Header: React.FC = () => {
         sx={{
           display: 'flex',
           flexDirection: 'row',
-          justifyContent: 'space-between',
+          justifyContent: 'space-around',
           alignItems: 'center',
           width: '100%',
           top: 0,
@@ -84,6 +84,13 @@ const Header: React.FC = () => {
           <Typography component="h1" fontSize="lg" fontWeight="xl" textColor="white">
             Net Forty-Two
           </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 3, alignContent: 'left', fontFamily:"-moz-initial" }}>
+          <Link href="#campaigns" underline="none" level="title-lg" color="neutral"> Race</Link>
+          <Link href="#heroDetails" underline="none" level="title-lg" color="neutral"> About us</Link>
+          <Link href="#claimable" underline="none" level="title-lg" color="neutral"> NFTs</Link>
+          <Link href="#featureUsers" underline="none" level="title-lg" color="neutral"> Leaderboard</Link>
+          <Link href="#footer" underline="none" level="title-lg" color="neutral"> Contact</Link>
         </Box>
         <Box sx={{ display: 'flex', flexDirection: 'row', gap: 3 }}>
           <Box
