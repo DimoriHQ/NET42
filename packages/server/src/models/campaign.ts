@@ -113,6 +113,38 @@ export const getCampaign = async (id: ObjectId): Promise<WithId<CampaignBaseType
   return await campaignColl.findOne({ _id: id });
 };
 
+type OnlineCampaignRegister = {
+  _id?: string;
+  campaignId: string;
+  athletePubkey: string;
+  registerTime: number;
+};
+
+let onlineCampaignRegisterColl: Collection<OnlineCampaignRegister>;
+const onlineCampaignRegisterCollName = createDBCollName("campaign_register");
+
+export const onlineCampaignRegisterInit = async () => {
+  const { collection } = await dbCollection<OnlineCampaignRegister>(process.env.DB__NET42!, onlineCampaignRegisterCollName);
+  onlineCampaignRegisterColl = collection;
+  await onlineCampaignRegisterColl.createIndex({ init: 1 });
+
+  logger.info({ thread: "db", data: "online campaign register inited" });
+};
+
+export const joinCampaign = async (campaignId, athlete) => {
+  // join campaign
+  await onlineCampaignRegisterColl.insertOne({ campaignId: campaignId, athletePubkey: athlete.pubkey, registerTime: Date.now() });
+};
+
+export const getJoinedCampaign = async (campaignId, athletePubkey) => {
+  console.log(athletePubkey);
+  return await onlineCampaignRegisterColl.findOne({ campaignId: campaignId, athletePubkey: athletePubkey });
+};
+
+export const getJoinedCampaigns = async (athleteId) => {
+  return await onlineCampaignRegisterColl.find({ athletePubkey: athleteId }).toArray();
+};
+
 export const getAllCampaigns = async (): Promise<CampaignDocument[]> => {
   logger.info({ thread: "db", collection: collName, action: "getAllCampaigns" });
 

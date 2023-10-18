@@ -27,6 +27,7 @@ import { usersTrackCampaign } from "./action/usersTrackCampaign";
 import { claim } from "./action/claim";
 import { profile } from "./action/profile";
 import { verify } from "./action/verify";
+import { authorizeStrava, checkpointsStrava, totalDistanceStrava, trackingDataStrava } from "./action/trackingData/stravaTrackingData";
 import { isProduction } from "./config";
 import multer from "@koa/multer";
 import { campaignCollInit } from "./models/campaign";
@@ -111,6 +112,10 @@ const upload = multer();
 
   router.get("/profile", profile);
   router.post("/nft/update-owner", profile);
+  router.get("/authorize-strava", authorizeStrava);
+  router.get("/tracking-data/:campaignId", trackingDataStrava);
+  router.get("/total-distance/:campaignId", totalDistanceStrava);
+  router.get("/checkpoint/:campaignId", checkpointsStrava)
 
   app.use(router.routes());
   app.use(router.allowedMethods());
