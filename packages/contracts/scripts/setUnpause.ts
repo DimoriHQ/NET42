@@ -8,7 +8,7 @@ async function main() {
   console.log("Account balance:", (await owner.getBalance()).toString());
 
   const NET42NFT = await ethers.getContractFactory("NET42NFT");
-  const net42NFT = NET42NFT.attach("");
+  const net42NFT = NET42NFT.attach("0xD7B12d40efC325cA818dFE0ACA3e982662C04228");
 
   const tx = await net42NFT.connect(owner).unpause();
   console.log(tx.hash);

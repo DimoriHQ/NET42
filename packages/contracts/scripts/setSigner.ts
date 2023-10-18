@@ -8,9 +8,9 @@ async function main() {
   console.log("Account balance:", (await owner.getBalance()).toString());
 
   const NET42NFT = await ethers.getContractFactory("NET42NFT");
-  const net42NFT = NET42NFT.attach("0xFDD8077253237cAdEd0FE662e6755F26886b3CC0");
+  const net42NFT = NET42NFT.attach("0xD7B12d40efC325cA818dFE0ACA3e982662C04228");
 
-  const tx = await net42NFT.connect(owner).setBaseTokenURL("");
+  const tx = await net42NFT.connect(owner).setSigner("0x4FdA0435774E32B5ecc0D82a5F48eC97e7F081d6");
   console.log(tx.hash);
 }
 

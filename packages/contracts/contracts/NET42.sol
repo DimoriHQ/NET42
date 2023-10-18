@@ -11,8 +11,15 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-// WIP
-contract NET42NFT is Initializable, ERC721Upgradeable, ERC721EnumerableUpgradeable, PausableUpgradeable, AccessControlUpgradeable, ERC721BurnableUpgradeable {
+contract NET42NFT is
+    Initializable,
+    ERC721Upgradeable,
+    ERC721EnumerableUpgradeable,
+    ERC721URIStorageUpgradeable,
+    ERC721BurnableUpgradeable,
+    PausableUpgradeable,
+    AccessControlUpgradeable
+{
     using AddressUpgradeable for address;
     using StringsUpgradeable for uint256;
     using CountersUpgradeable for CountersUpgradeable.Counter;
@@ -20,18 +27,19 @@ contract NET42NFT is Initializable, ERC721Upgradeable, ERC721EnumerableUpgradeab
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
-    CountersUpgradeable.Counter private tokenId;
+    CountersUpgradeable.Counter public tokenId;
 
-    string public baseTokenURI;
-    string public baseExtension;
+    mapping(uint256 => uint256) public tokenType;
+    // 0 = register
+    // 1 = track
 
-    mapping(uint256 => uint256) tokenType;
-    // 0 = achievement
-    // 1 = campaign
+    mapping(uint256 => string) public campaignIds; // nftId => campaignId
+    mapping(string => uint256[]) public campaignNfts; // campaignId => nftIds
+    mapping(uint256 => string) public medalIds; // tokenId => medalId
 
-    mapping(uint256 => uint256) achievements;
-    mapping(uint256 => uint256) campaignIds;
-    mapping(uint256 => uint256) campaignNfts;
+    mapping(bytes => bool) public proofs;
+
+    address public signer;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -60,53 +68,86 @@ contract NET42NFT is Initializable, ERC721Upgradeable, ERC721EnumerableUpgradeab
         _unpause();
     }
 
-    function achievementMint() public whenNotPaused {
-        uint256 _tokenId = tokenId.current();
-
-        tokenType[_tokenId] = 0;
-
-        // TO-DO: params of proof, verify sign from minter
-
-        tokenId.increment();
-        _safeMint(msg.sender, _tokenId);
+    function setSigner(address _signer) public onlyRole(PAUSER_ROLE) {
+        signer = _signer;
     }
 
-    function campaignMint(uint256 campaignId) public whenNotPaused {
+    function getSigner() public view returns (address) {
+        return signer;
+    }
+
+    function safeMint(string memory campaignId, uint256 _tokenType, string memory medalId, string memory _tokenURI, bytes memory signature) public whenNotPaused {
+        require(verify(msg.sender, campaignId, _tokenType, medalId, _tokenURI, signature), "signature do not match");
+        require(proofs[signature] == false, "minted already");
+
+        proofs[signature] = true;
+
         uint256 _tokenId = tokenId.current();
 
-        tokenType[_tokenId] = 1;
+        tokenType[_tokenId] = _tokenType;
         campaignIds[_tokenId] = campaignId;
-
-        // TO-DO: params of proof, verify sign from minter
+        medalIds[_tokenId] = medalId;
+        campaignNfts[campaignId].push(_tokenId);
 
         tokenId.increment();
         _safeMint(msg.sender, _tokenId);
+        _setTokenURI(_tokenId, _tokenURI);
     }
 
-    function _baseURI() internal view override returns (string memory) {
-        return baseTokenURI;
+    function getMessageHash(address sender, string memory campaignId, uint256 _tokenType, string memory medalId, string memory _tokenURI) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked(sender, campaignId, _tokenType, medalId, _tokenURI));
     }
 
-    function setBaseTokenURL(string memory _baseTokenURI) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        baseTokenURI = _baseTokenURI;
-    }
+    // https://solidity-by-example.org/signature/
+    function verify(
+        address sender,
+        string memory campaignId,
+        uint256 _tokenType,
+        string memory medalId,
+        string memory _tokenURI,
+        bytes memory signature
+    ) public view returns (bool) {
+        bytes32 messageHash = getMessageHash(sender, campaignId, _tokenType, medalId, _tokenURI);
+        bytes32 ethSignedMessageHash = getEthSignedMessageHash(messageHash);
 
-    function tokenURI(uint256 _tokenId) public view virtual override returns (string memory) {
-        _requireMinted(_tokenId);
-
-        string memory baseURI = _baseURI();
-        return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, _tokenId.toString(), baseExtension)) : "";
+        return recoverSigner(ethSignedMessageHash, signature) == signer;
     }
 
     function _beforeTokenTransfer(address from, address to, uint256 _tokenId, uint256 batchSize) internal override(ERC721Upgradeable, ERC721EnumerableUpgradeable) whenNotPaused {
         super._beforeTokenTransfer(from, to, _tokenId, batchSize);
     }
 
-    function _burn(uint256 _tokenId) internal override(ERC721Upgradeable) {
+    function _burn(uint256 _tokenId) internal override(ERC721Upgradeable, ERC721URIStorageUpgradeable) {
         super._burn(_tokenId);
     }
 
-    function supportsInterface(bytes4 interfaceId) public view override(ERC721Upgradeable, ERC721EnumerableUpgradeable, AccessControlUpgradeable) returns (bool) {
+    function tokenURI(uint256 _tokenId) public view override(ERC721Upgradeable, ERC721URIStorageUpgradeable) returns (string memory) {
+        return super.tokenURI(_tokenId);
+    }
+
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override(ERC721Upgradeable, ERC721EnumerableUpgradeable, AccessControlUpgradeable, ERC721URIStorageUpgradeable) returns (bool) {
         return super.supportsInterface(interfaceId);
+    }
+
+    function getEthSignedMessageHash(bytes32 _messageHash) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", _messageHash));
+    }
+
+    function recoverSigner(bytes32 _ethSignedMessageHash, bytes memory _signature) public pure returns (address) {
+        (bytes32 r, bytes32 s, uint8 v) = splitSignature(_signature);
+
+        return ecrecover(_ethSignedMessageHash, v, r, s);
+    }
+
+    function splitSignature(bytes memory sig) public pure returns (bytes32 r, bytes32 s, uint8 v) {
+        require(sig.length == 65, "invalid signature length");
+
+        assembly {
+            r := mload(add(sig, 32))
+            s := mload(add(sig, 64))
+            v := byte(0, mload(add(sig, 96)))
+        }
     }
 }

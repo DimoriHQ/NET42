@@ -128,7 +128,7 @@ const CreateCampaign: React.FC = () => {
       <div className="mb-6">
         <Typography level="h1">Create campaign</Typography>
       </div>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit)} className="mb-36">
         <div className="flex gap-4 flex-col">
           <Input {...register("name", { required: "Name is required" })} placeholder="Campaign name" variant="outlined" />
           <FormError label={errors.name} />

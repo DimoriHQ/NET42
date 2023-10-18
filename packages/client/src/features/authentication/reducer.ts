@@ -18,11 +18,9 @@ export const verify = createAsyncThunk(
 
     const tryVerity = async (token: string, tried: boolean): Promise<{ isAuth: boolean; isAdmin: boolean; token: string }> => {
       try {
-        const { data } = await axios.post<Response<{ isAuth: boolean; isAdmin: boolean }>>(
-          `${config.apiURL}/v1/auth/verify`,
-          { address },
-          { headers: { Authorization: "Bearer " + token } },
-        );
+        const { data } = await axios.post<Response<{ isAuth: boolean; isAdmin: boolean }>>(`${config.apiURL}/v1/auth/verify?address=${address}`, undefined, {
+          headers: { Authorization: "Bearer " + token },
+        });
         if (data.status) {
           if (data.data.isAuth) {
             tokenStorage.set(token);

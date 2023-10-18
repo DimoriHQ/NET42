@@ -22,7 +22,7 @@ export const waitlistCollInit = async () => {
   await waitlistColl.createIndex({ email: 1 });
   await waitlistColl.createIndex({ time: 1 });
 
-  logger.info({ thread: "db", data: "waitlist inited" });
+  logger.info({ thread: "db", collection: collName, stage: "initial" });
 };
 
 export const isWaitlistExist = async (email: string): Promise<WaitlistDocument> => {
