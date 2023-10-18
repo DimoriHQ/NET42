@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { handleNftId } from "../models/net42";
+import { getBlockchainNftMedalId, handleNftId, updateNftId } from "../models/net42";
 import logger from "../utils/log";
 import abi from "../abi/NET42NFT.json";
 import sleep from "../utils/sleep";
@@ -25,14 +25,12 @@ export const listenerInit = () => {
     listenerInit();
   });
 
-  wss.on("Transfer", (from, to, value: ethers.BigNumber, event) => {
-    if (from !== "0x0000000000000000000000000000000000000000") {
-      return;
-    }
-
-    // TO-DO: catch transfer
-
+  wss.on("Transfer", (_, to, value: ethers.BigNumber) => {
     const nftId = value.toNumber();
+
+    getBlockchainNftMedalId(nftId).then((medalId) => {
+      updateNftId(medalId, nftId, to);
+    });
 
     logger.info("transfer listener", nftId);
 

@@ -8,7 +8,7 @@ async function main() {
   console.log("Account balance:", (await owner.getBalance()).toString());
 
   const NET42NFT = await ethers.getContractFactory("NET42NFT");
-  await upgrades.upgradeProxy("", NET42NFT);
+  await upgrades.upgradeProxy("0xD7B12d40efC325cA818dFE0ACA3e982662C04228", NET42NFT);
 }
 
 main()

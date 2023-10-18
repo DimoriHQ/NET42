@@ -10,8 +10,8 @@ async function main() {
   const NET42NFT = await ethers.getContractFactory("NET42NFT");
   const net42NFT = NET42NFT.attach("");
 
-  const tx = await net42NFT.connect(owner).achievementMint();
-  console.log(tx.hash);
+  // const tx = await net42NFT.connect(owner).safeMint();
+  // console.log(tx.hash);
 }
 
 main()

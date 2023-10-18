@@ -1,9 +1,21 @@
 import dayjs from "dayjs";
 import { KoaContext } from "../global";
 import { CampaignBaseType, Track, getAllCampaigns, createCampaign as dbCreateCampaign } from "../models/campaign";
-import { successResponse } from "../services/response";
+import { errorResponse, successResponse } from "../services/response";
 
 export const createCampaign = async (ctx: KoaContext) => {
+  if (!ctx.isAuth) {
+    ctx.status = 400;
+    ctx.body = errorResponse("need auth", 400);
+    return;
+  }
+
+  if (!ctx.isAdmin) {
+    ctx.status = 400;
+    ctx.body = errorResponse("need admin", 400);
+    return;
+  }
+
   const body = ctx.request.body as {
     name: string;
     description: string;

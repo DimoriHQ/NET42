@@ -5,17 +5,21 @@ const jwks = jose.createRemoteJWKSet(new URL("https://authjs.web3auth.io/jwks"))
 
 export const auth = async (ctx: KoaContext, next: KoaNext) => {
   const idToken = ctx.request.headers.authorization?.split(" ")[1];
-  const body = ctx.request.body as { address: string };
+  let address = ctx.request.query["address"] as string;
 
   if (!idToken) {
     await next();
     return;
   }
 
-  const jwtDecoded = await jose.jwtVerify(idToken, jwks, { algorithms: ["ES256"] });
-  const address = body.address?.toLocaleLowerCase();
+  if (!address) {
+    await next();
+    return;
+  }
 
-  // console.log(idToken, body, jwtDecoded.payload, "debug");
+  address = address.toLocaleLowerCase();
+
+  const jwtDecoded = await jose.jwtVerify(idToken, jwks, { algorithms: ["ES256"] });
 
   if (jwtDecoded.payload.wallets[0].address === address) {
     ctx.address = address;

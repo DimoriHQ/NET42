@@ -1,12 +1,12 @@
-import * as ethers from "ethers";
 import { dbCollection } from "../db/collection";
-import { Document, Collection } from "mongodb";
-import { checkS3Exist, uploadMetadataToS3, uploadToS3 } from "../services/s3";
-import { DB__NET42, IMAGE_DIR, TEMPLATE_DIR } from "../config";
+import { Document, Collection, ObjectId, WithId } from "mongodb";
+import { DB__NET42, SIGNER_PRIVATE_KEY } from "../config";
 import logger from "../utils/log";
-import Jimp from "jimp";
 import { createDBCollName } from "../db/createDBCollName";
-import { net42Contract } from "../services/ether";
+import { httpProvider, net42Contract } from "../services/ether";
+import { CampaignBaseType } from "./campaign";
+import { ethers } from "ethers";
+import abi from "ethereumjs-abi";
 
 // NFT
 export type NET42NftType = {
@@ -17,16 +17,12 @@ export type NET42NftType = {
   attributes: [
     {
       trait_type: "campaign_id";
-      value: number;
+      value: string;
     },
-    {
-      trait_type: "created_date";
-      value: number;
-    },
-    {
-      trait_type: "track";
-      value: number;
-    }?,
+    { trait_type: "participant"; value: string },
+    { trait_type: "created_date"; value: string },
+    { trait_type: "type"; value: number },
+    { trait_type: "track"; value: number }?,
   ];
 
   seller_fee_basis_points: 0;
@@ -36,17 +32,47 @@ export type NET42NftType = {
 };
 
 export type NET42Base = {
-  _id: number;
+  campaignId: ObjectId;
+  _id?: ObjectId;
   owner: string;
 
-  campaignId: number;
+  participant: string;
   createdDate: Date;
+  type: 0 | 1; // registered, track
+  trackIndex?: number;
   track?: number;
+
+  metadata: string;
+
+  nftId?: number;
 };
 
-type NET42Document = NET42NftType & NET42Base & Document;
+export const net42BaseToftType = (campaign: CampaignBaseType, base: NET42Base): NET42NftType => {
+  const { participant, campaignId, createdDate, type, track, trackIndex } = base;
 
-let nftColl: Collection<NET42Document>;
+  const nft: NET42NftType = {
+    name: type ? `${campaign.name} - ${track}` : `${campaign.name} - Registerd Medal`,
+    description: campaign.description,
+    image: type === 0 ? campaign.registeredImage : campaign.tracks[trackIndex].image,
+    attributes: [
+      { trait_type: "campaign_id", value: campaignId.toHexString() },
+      { trait_type: "participant", value: participant },
+      { trait_type: "created_date", value: createdDate.toISOString() },
+      { trait_type: "type", value: type },
+      { trait_type: "track", value: track || 0 },
+    ],
+    seller_fee_basis_points: 0,
+
+    compiler: "net42.run",
+    external_url: "https://net42.run",
+  };
+
+  return nft;
+};
+
+type NET42Document = NET42Base & Document;
+
+let nftColl: Collection<NET42Base>;
 
 const collName = createDBCollName("nft");
 
@@ -54,193 +80,101 @@ export const nftCollInit = async () => {
   const { collection } = await dbCollection<NET42Document>(DB__NET42, collName);
   nftColl = collection;
 
-  await nftColl.createIndex({ "attributes.[0].value": 1 });
-  await nftColl.createIndex({ "attributes.[1].value": 1 });
-  await nftColl.createIndex({ "attributes.[2].value": 1 });
-
   await nftColl.createIndex({ campaignId: 1 });
+  await nftColl.createIndex({ participant: 1 });
   await nftColl.createIndex({ createdDate: 1 });
+  await nftColl.createIndex({ type: 1 });
   await nftColl.createIndex({ track: 1 });
 
-  logger.info({ thread: "db", data: "nft inited" });
-};
-
-const getNftByRange = async (day: number, level: number) => {
-  const cursor = nftColl.aggregate([{ $match: { day, level } }, { $group: { _id: null, count: { $count: {} } } }]);
-
-  for await (const event of cursor) {
-    return event.count as number;
-  }
-
-  return 0;
-};
-
-export const handleNftId = async (id: number) => {
-  logger.info({ thread: "handle", message: `handle NFT Id ${id}` });
-
-  const total = await getTotalSupply();
-
-  if (id >= total) {
-    logger.info({ thread: "handle", message: `handle NFT id ${id}, but total supply is ${total}, return` });
-
-    return;
-  }
-
-  const dbNft = await isExist(id);
-  const s3Nft = await checkS3Exist(getJsonFilename(id));
-
-  if (dbNft) {
-    logger.info({ thread: "handle", mesasge: `handle NFT id ${id}, existed dbNft` });
-
-    if (s3Nft) {
-      logger.info({ thread: "handle", message: `handle NFT id ${id}, existed dbNft and s3Nft` });
-
-      return;
-    }
-
-    logger.info({ thread: "handle", message: `handle NFT id ${id}, existed dbNft, do not exist s3Nft, create one` });
-
-    const nft = dbNftToNft(dbNft);
-    await uploadMetadataToS3(nft, getJsonFilename(id));
-    await genImage(id, nft);
-    await uploadToS3(`${IMAGE_DIR}/${id}.png`, `${id}.png`);
-
-    return;
-  }
-
-  const owner = await net42Contract.ownerOf(id);
-  const day = (await getDayOfNFT(id)).toNumber();
-
-  const nft = await newNft(id, day);
-  await nftColl.insertOne({ ...nft, _id: id, owner, campaignId: 0, createdDate: new Date() });
-
-  // push to s3
-  await uploadMetadataToS3(nft, getJsonFilename(id));
-
-  await genImage(id, nft);
-  await uploadToS3(`${IMAGE_DIR}/${id}.png`, `${id}.png`);
+  logger.info({ thread: "db", collection: collName, stage: "initial" });
 };
 
 export const getTotalSupply = async (): Promise<number> => {
   return (await net42Contract.totalSupply()) as number;
 };
 
-const isExist = async (id: number): Promise<NET42Document> => {
+export const isNftExist = async (id: ObjectId): Promise<NET42Document> => {
   const nft = await nftColl.findOne({ _id: id });
   return nft;
 };
 
-const getDayOfNFT = async (id: number) => {
-  const day = (await net42Contract.dayOfNFT(id)) as ethers.BigNumber;
-
-  return day;
+export const isRegisterdNftExist = async (campaign: WithId<CampaignBaseType>, owner: string): Promise<NET42Document> => {
+  return await nftColl.findOne({ campaignId: campaign._id, participant: owner, type: 0 });
 };
 
-const dbNftToNft = (dbNft: NET42Document): NET42NftType => {
-  return {
-    name: `NET42 #${dbNft._id}`,
-    image: genImageS3URL(dbNft._id),
-    description: dbNft.description,
-    attributes: dbNft.attributes,
-    seller_fee_basis_points: 0,
-    compiler: "net42.run",
-    external_url: "https://net42.run",
-  };
-};
+export const isTrackNftExist = async (campaign: WithId<CampaignBaseType>, owner: string): Promise<NET42Document[]> => {
+  const cursor = nftColl.find({ campaignId: campaign._id, participant: owner, type: 1 });
 
-const newNft = async (id: number, campaignId: number): Promise<NET42NftType> => {
-  const nft: NET42NftType = {
-    name: `Dimori Campaign #${campaignId} - #${id}`,
-    image: genImageS3URL(id),
-    description: "",
-    attributes: [
-      {
-        trait_type: "campaign_id",
-        value: campaignId,
-      },
-      {
-        trait_type: "created_date",
-        value: Date.now(),
-      },
-    ],
-    seller_fee_basis_points: 0,
-    compiler: "net42.run",
-    external_url: "https://net42.run",
-  };
+  const nfts = [];
 
-  return nft;
-};
-
-const genImageS3URL = (id: number) => {
-  return `https://${""}/images/${id}.png`;
-};
-
-const genMetadataS3URL = (id: number) => {
-  return `https://${""}/${id}.json`;
-};
-
-const getJsonFilename = (id: number) => {
-  return `${id}.json`;
-};
-
-const levelFromAttributes = (nft: NET42NftType) => {
-  return nft.attributes[0].value;
-};
-
-const pointFromAttributes = (nft: NET42NftType) => {
-  return nft.attributes[1].value;
-};
-
-const dayFromAttributes = (nft: NET42NftType) => {
-  return nft.attributes[2].value;
-};
-
-// need to update match with dimori
-const genImage = async (id: number, nft: NET42NftType) => {
-  // copy template and move to images
-  const point = pointFromAttributes(nft);
-
-  let image = await Jimp.read(`${TEMPLATE_DIR}/${""}${levelFromAttributes(nft)}-1024.png`);
-
-  if (point === 0) {
-    image = await Jimp.read(`${TEMPLATE_DIR}/${""}id0-1024.png`);
+  for await (const nft of cursor) {
+    nfts.push(nft);
   }
 
-  if (point === 50) {
-    image = await Jimp.read(`${TEMPLATE_DIR}/${""}id50-1024.png`);
-  }
-
-  // const font = await Jimp.loadFont(Jimp.FONT_SANS_32_WHITE);
-  // const fontPoint = await Jimp.loadFont(`${TEMPLATE_DIR}/OYrmtVgCAYZDpQ8oqON0Vfor.ttf.fnt`);
-
-  // add text to image
-
-  // const level = levelFromAttributes(nft);
-  // const day = dayFromAttributes(nft);
-
-  // image.print(font, 1890, 2099, day);
-  // image.print(font, 1375, 2099, level);
-  // image.print(font, 890, 265, id);
-  // image.print(fontPoint, 1270, 2300, point);
-
-  // image.print(font, 632, 710, day);
-  // image.print(font, 458, 710, level);
-  // image.print(font, 295, 90, id);
-  // image.print(fontPoint, 370, 740, point);
-
-  await image.writeAsync(`${IMAGE_DIR}/${id}.png`);
+  return nfts;
 };
 
-export const updateOwner = async (id: number) => {
-  const nft = await nftColl.findOne({ _id: id });
+export const handleNftId = async (id: number) => {};
+export const updateNftOwner = async (id: number) => {
+  // const nft = await nftColl.findOne({ _id: id });
+  // if (!nft) return;
+  // const owner = await net42Contract.ownerOf(id);
+  // logger.info({ thread: "model", model: "nft", message: `update owner ${id} ${owner}` });
+  // await nftColl.updateOne({ _id: id }, { $set: { owner } });
+};
 
-  if (!nft) {
-    return;
-  }
+export const createNft = async (nft: NET42Base) => {
+  logger.info({ thread: "db", collection: collName, action: "createNft", nft });
 
-  const owner = await net42Contract.ownerOf(id);
+  return await nftColl.insertOne(nft);
+};
 
-  logger.info({ thread: "model", model: "nft", message: `update owner ${id} ${owner}` });
+export const getNft = async (id: string) => {
+  logger.info({ thread: "db", collection: collName, action: "getNft", id });
+  const objectId = ObjectId.createFromHexString(id);
 
-  await nftColl.updateOne({ _id: id }, { $set: { owner } });
+  return await nftColl.findOne({ _id: objectId });
+};
+
+export const createNftProof = async (nft: NET42Base): Promise<string> => {
+  const signer = await createSigner();
+
+  const message = await getMessageHash(nft);
+
+  const signature = await signer.signMessage(message);
+
+  return signature;
+};
+
+export const createSigner = async () => {
+  const signer = new ethers.Wallet(SIGNER_PRIVATE_KEY, httpProvider);
+  return signer;
+};
+
+export const getMessageHash = async (nft: NET42Base): Promise<Buffer> => {
+  // console.log(nft.participant, nft.campaignId.toHexString(), nft.type, nft._id.toHexString(), nft.metadata);
+  // const hash = (await net42Contract.getMessageHash(nft.participant, nft.campaignId.toHexString(), nft.type, nft._id.toHexString(), nft.metadata)) as string;
+
+  const hash = abi.soliditySHA3(["address", "string", "uint256", "string", "string"], [nft.participant, nft.campaignId.toHexString(), nft.type, nft._id.toHexString(), nft.metadata]);
+
+  return hash;
+};
+
+export const getSigner = async (): Promise<string> => {
+  return (await net42Contract.getSigner()) as string;
+};
+
+export const verify = async (nft: NET42Base, signature: string): Promise<boolean> => {
+  const result = (await net42Contract.verify(nft.participant, nft.campaignId.toHexString(), nft.type, nft._id.toHexString(), nft.metadata, signature)) as boolean;
+  return result;
+};
+
+export const getBlockchainNftMedalId = async (id: number): Promise<string> => {
+  const data = await net42Contract.medalIds(id);
+  return data;
+};
+
+export const updateNftId = async (medalId: string, nftId: number, owner: string) => {
+  const objectId = ObjectId.createFromHexString(medalId);
+  await nftColl.updateOne({ _id: objectId }, { $set: { nftId, owner } });
 };

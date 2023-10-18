@@ -22,3 +22,5 @@ export const S3_BUCKET = process.env.S3_BUCKET!;
 export const S3_REGION = process.env.S3_REGION!;
 
 export const WEB3_STORAGE_API_TOKEN = process.env.WEB3_STORAGE_API_TOKEN!;
+
+export const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY!;

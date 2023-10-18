@@ -14,7 +14,7 @@ import { dateRangeMiddleware } from "./middlewares/dateRange";
 import { paginationMiddleware } from "./middlewares/page";
 import { limiter } from "./middlewares/limiter";
 import { notFound } from "./middlewares/notFound";
-import { nftCollInit } from "./models/net42";
+import { getSigner, nftCollInit } from "./models/net42";
 import { index } from "./action/index";
 import saveWaitlist from "./action/saveWailist";
 import { getClaimable } from "./action/getClaimable";
@@ -32,6 +32,8 @@ import { isProduction } from "./config";
 import multer from "@koa/multer";
 import { campaignCollInit } from "./models/campaign";
 import { waitlistCollInit } from "./models/waitlist";
+import { registerCampaign } from "./action/registerCampaign";
+import { userCollInit } from "./models/user";
 
 // create app
 const app = new Koa();
@@ -55,6 +57,7 @@ const upload = multer();
   await campaignCollInit();
   await nftCollInit();
   await waitlistCollInit();
+  await userCollInit();
 
   // app router
   const router = new Router({ prefix: "/v1" });
@@ -102,6 +105,7 @@ const upload = multer();
   router.get("/campaign/:id", getCampaigns);
   router.put("/campaign/:id", editCampaign);
   router.put("/campaign/:id/users", usersTrackCampaign);
+  router.post("/campaign/:id/register", registerCampaign);
 
   router.get("/claimable", getClaimable);
   router.get("/campaign/claim/:id", claim);

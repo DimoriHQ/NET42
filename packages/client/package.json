@@ -20,6 +20,8 @@
     "@metamask/detect-provider": "^2.0.0",
     "@mui/icons-material": "^5.14.13",
     "@mui/joy": "5.0.0-beta.10",
+    "@mui/lab": "5.0.0-alpha.148",
+    "@mui/material": "^5.14.13",
     "@mui/styled-engine": "^5.14.13",
     "@mui/styles": "^5.14.13",
     "@mui/x-date-pickers": "^6.16.2",

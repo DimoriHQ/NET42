@@ -1,4 +1,4 @@
-import { getTotalSupply, handleNftId, updateOwner } from "../models/net42";
+import { getTotalSupply, handleNftId, updateNftOwner } from "../models/net42";
 import logger from "../utils/log";
 import sleep from "../utils/sleep";
 
@@ -11,8 +11,7 @@ export const scanNFTs = async () => {
 
   for (let index = 0; index < total; index++) {
     await handleNftId(index);
-
-    await updateOwner(index);
+    await updateNftOwner(index);
 
     await sleep(500);
   }

@@ -26,6 +26,9 @@ export const rawToCampaignType = (raw: RawCampaignType): CampaignType => {
     stravaData,
 
     nftId,
+
+    status,
+    joined,
   } = raw;
 
   const campaign = {
@@ -50,6 +53,9 @@ export const rawToCampaignType = (raw: RawCampaignType): CampaignType => {
     stravaData,
 
     nftId,
+
+    status: status || "available",
+    joined: joined || 0,
   };
 
   return campaign;
@@ -79,7 +85,8 @@ export type RawCampaignType = {
   stravaData: boolean;
 
   nftId?: number;
-};
+} & UserState &
+  ParticipantState;
 
 export type CampaignType = {
   _id?: string;
@@ -105,6 +112,24 @@ export type CampaignType = {
   stravaData: boolean;
 
   nftId?: number;
+} & UserState &
+  ParticipantState;
+
+export enum UserStateStatus {
+  AVAILABLE = "available",
+  REGISTERED = "registerd",
+  ENDED = "ended",
+  CLAIMABLE = "claimable",
+  UNFINISHED = "unfinished",
+  FINISHED = "finished",
+}
+
+export type UserState = {
+  status: UserStateStatus | string;
+};
+
+export type ParticipantState = {
+  joined: number;
 };
 
 export const day0 = dayjs(0);
@@ -126,6 +151,9 @@ export const emptyCampaign: CampaignType = {
   stravaData: false,
   standardCode: "",
   tracks: [],
+
+  status: "available",
+  joined: 0,
 };
 
 export type CampaignReducer = {
@@ -148,3 +176,55 @@ export type UserTrack = {
 };
 
 export type UserTracks = UserTrack[];
+
+export type NET42NftType = {
+  name: string;
+  description: string;
+  image: string;
+
+  attributes: [
+    {
+      trait_type: "campaign_id";
+      value: string;
+    },
+    { trait_type: "participant"; value: string },
+    { trait_type: "created_date"; value: string },
+    { trait_type: "type"; value: number },
+    { trait_type: "track"; value: number }?,
+  ];
+
+  seller_fee_basis_points: 0;
+
+  compiler: "net42.run";
+  external_url: "https://net42.run";
+};
+
+export type NET42Base = {
+  campaignId: string;
+  _id?: string;
+  owner: string;
+
+  participant: string;
+  createdDate: Date;
+  type: 0 | 1; // registered, track
+  trackIndex?: number;
+  track?: number;
+
+  metadata: string;
+
+  nftId?: string;
+};
+
+export type User = {
+  address: string;
+  joined: string[];
+};
+
+export type MintProof = {
+  user: User;
+  nft: {
+    baseNft: NET42Base;
+    nft: NET42NftType;
+  };
+  proof: string;
+};
