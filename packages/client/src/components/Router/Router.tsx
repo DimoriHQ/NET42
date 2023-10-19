@@ -4,7 +4,7 @@ import AdminLayout from "../Layout/AdminLayout";
 import Layout from "../Layout/Layout";
 import RootLayout from "../Layout/RootLayout";
 import { LazyAdmin, LazyCampaign, LazyCampaigns, LazyCreateCampaign, LazyHome, LazyProfile, LazyUserTracks } from "./elements";
-
+import Logout from "../Home/Logout";
 const Router: React.FC = () => {
   return (
     <BrowserRouter>
@@ -21,6 +21,7 @@ const Router: React.FC = () => {
             <Route path="/admin/create" element={<LazyCreateCampaign />} />
             <Route path="/admin/tracks" element={<LazyUserTracks />} />
           </Route>
+          <Route path="/logout" element={<Logout />}></Route>
         </Route>
       </Routes>
     </BrowserRouter>

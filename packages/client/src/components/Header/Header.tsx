@@ -7,8 +7,10 @@ import { clearAuth, selectAuth, setProvider, verify } from "../../features/authe
 import Section from "../Layout/Section";
 import { Box, Button, Link } from "@mui/joy";
 import Typography from '@mui/joy/Typography';
+import Stack from '@mui/joy/Stack';
 import "../../styles/header.css";
-// import ColorSchemeToggle from './ColorSchemeToggle';
+import ColorSchemeToggle from './ColorSchemeToggle';
+import Menu from './Menu';
 
 const Header: React.FC = () => {
   const auth = useAppSelector(selectAuth);
@@ -30,16 +32,32 @@ const Header: React.FC = () => {
 
   const Profile = () => {
     if (isConnected) {
-      return (  
-        <div>
-          <div>
-            <Button color="neutral" variant="solid" size="lg"><a href={`/profile/${address}`}>My profile: {address.slice(0, 8)}</a></Button>
-            <Button color="danger" onClick={logout}>
-          Logout
-          </Button>
-          </div>
-          
-        </div>
+      return (
+        <Stack>
+        <Menu
+          id="app-selector"
+          control={
+            <Button color="success" variant="soft" size="lg">
+              {address.slice(0, 8)}
+            </Button>
+          }
+          menus={[
+            {
+              label: 'Profile',
+              active: true,
+              href: `/profile/${address}`,
+            },
+            {
+              label: 'My Races',
+              href: '#',
+            },
+            {
+              label: 'Logout',
+              href: '/logout',
+            },
+          ]}
+        />
+        </Stack>
       );
     } else {
       return (
