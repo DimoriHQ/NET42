@@ -3,9 +3,9 @@
 .footer {
   position: relative;
   width: 100%;
-  background: #47C6FF;
+  background: #0b6bcb;
   min-height: 100px;
-  padding: 20px 50px;
+  /* padding: 20px 50px; */
   display: flex;
   justify-content: center;
   align-items: center;

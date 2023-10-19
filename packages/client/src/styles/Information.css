@@ -1,12 +1,12 @@
 .information {
     justify-content: center;
     display: flex;
-    height: 90vh;
+    /* height: 90vh; */
 }
 
 .information h1 {
     font-size: 4em;
     text-align: center;
     align-items: center;
-    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    /* font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif; */
 }

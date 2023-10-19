@@ -1,7 +1,7 @@
 .header {
-    background: rgba(0, 0, 0, 0.5);
     position: sticky;
-    top:0;
+    top: 0px;
+    background: #0B6BCB;
 }
 
 .main {

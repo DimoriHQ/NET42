@@ -1,17 +1,6 @@
 .hero {
-    height: 50vh;
-    /* Flexbox stuff */
-    display: flex;
-    justify-content: center;
-    align-items: start;
-    
-    /* Text styles */
-    text-align: center;
-    color: black; /* ADD THIS LINE */
-    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-    background: url('/images/background.jpeg') 40% 40%;
+    background: url('/images/bm_trail.jpg');
 }
-
 .hero-inner {
     margin-top: 70px;
 }

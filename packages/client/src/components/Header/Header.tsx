@@ -33,7 +33,7 @@ const Header: React.FC = () => {
       return (  
         <div>
           <div>
-            <Button color="neutral" variant="solid"><a href={`/profile/${address}`}>My profile: {address.slice(0, 8)}</a></Button>
+            <Button color="neutral" variant="solid" size="lg"><a href={`/profile/${address}`}>My profile: {address.slice(0, 8)}</a></Button>
             <Button color="danger" onClick={logout}>
           Logout
           </Button>
@@ -43,7 +43,7 @@ const Header: React.FC = () => {
       );
     } else {
       return (
-        <Button color="primary" onClick={connect}>
+        <Button color="primary" variant="soft" size="lg" onClick={connect}>
           Connect
         </Button>
       );
@@ -75,22 +75,21 @@ const Header: React.FC = () => {
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            gap: 1.5,
+            gap: 1,
           }}
         >
           <Link href="/">
             <img src="/images/n42.png" width={100} />
           </Link>
-          <Typography component="h1" fontSize="lg" fontWeight="xl" textColor="white">
+          <Typography level="title-lg" textColor="white">
             Net Forty-Two
           </Typography>
         </Box>
-        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 3, alignContent: 'left', fontFamily:"-moz-initial" }}>
-          <Link href="#campaigns" underline="none" level="title-lg" color="neutral"> Race</Link>
-          <Link href="#heroDetails" underline="none" level="title-lg" color="neutral"> About us</Link>
-          <Link href="#claimable" underline="none" level="title-lg" color="neutral"> NFTs</Link>
-          <Link href="#featureUsers" underline="none" level="title-lg" color="neutral"> Leaderboard</Link>
-          <Link href="#footer" underline="none" level="title-lg" color="neutral"> Contact</Link>
+        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 3, alignContent: 'left'}}>
+          <Link href="#information" underline="none" level="title-lg" variant="solid" color="primary">Features</Link>
+          <Link href="#campaigns" underline="none" level="title-lg" variant="solid" color="primary">Races</Link>
+          <Link href="#footer" underline="none" level="title-lg" variant="solid" color="primary">Contact</Link>
+          <Link href="#heroDetails" underline="none" level="title-lg" variant="solid" color="primary"> About</Link>
         </Box>
         <Box sx={{ display: 'flex', flexDirection: 'row', gap: 3 }}>
           <Box
