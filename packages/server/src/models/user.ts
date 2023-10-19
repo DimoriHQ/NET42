@@ -3,7 +3,7 @@ import { Document, Collection, ObjectId, WithId } from "mongodb";
 import logger from "../utils/log";
 import { DB__NET42 } from "../config";
 import { createDBCollName } from "../db/createDBCollName";
-import { CampaignBaseType, createNet42Medal } from "./campaign";
+import { CampaignBaseType, createNet42Medal, getCampaignsById } from "./campaign";
 import { NET42Base, NET42NftType, createNft, createNftProof, isRegisterdNftExist, net42BaseToftType } from "./net42";
 
 export type User = {
@@ -80,4 +80,11 @@ export const userJoinCampaign = async (
   const proof = await createNftProof(baseNft);
 
   return { user: await getUser(address), nft: { baseNft, nft }, proof };
+};
+
+export const getCampaignsByUser = async (address: string) => {
+  const user = await getUser(address);
+  const campaigns = await getCampaignsById(user.joined);
+
+  return campaigns;
 };

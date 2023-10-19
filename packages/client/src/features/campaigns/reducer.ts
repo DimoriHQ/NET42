@@ -7,9 +7,15 @@ import { getStateToken } from "../../services/getStateToken";
 import { Response } from "../../services/response";
 import { CampaignType, MintProof, RawCampaignType, defaultCampaignReducer, emptyCampaign, rawToCampaignType } from "./types";
 
-export const getCampaigns = createAsyncThunk("campaign/getCampaigns", async (_, { dispatch }): Promise<CampaignType[]> => {
+export const getCampaigns = createAsyncThunk("campaign/getCampaigns", async ({ address }: { address: `0x${string}` }, { dispatch, getState }): Promise<CampaignType[]> => {
+  const token = await getStateToken(getState());
   try {
-    const { data } = await axios.get<Response<RawCampaignType[]>>(`${config.apiURL}/v1/campaigns`);
+    const { data } = await axios.get<Response<RawCampaignType[]>>(`${config.apiURL}/v1/campaigns?address=${address}`, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`,
+      },
+    });
     if (data.status) {
       return data.data.map(rawToCampaignType);
     }
@@ -25,7 +31,10 @@ export const getCampaigns = createAsyncThunk("campaign/getCampaigns", async (_, 
 
 export const createCampaign = createAsyncThunk(
   "campaign/createCampaign",
-  async ({ address, campaign, callback }: { address: string; campaign: FormData; callback: (last: CampaignType) => void }, { getState, dispatch }): Promise<CampaignType[]> => {
+  async (
+    { address, campaign, callback }: { address: `0x${string}`; campaign: FormData; callback: (last: CampaignType) => void },
+    { getState, dispatch },
+  ): Promise<CampaignType[]> => {
     const token = await getStateToken(getState());
 
     try {
@@ -69,9 +78,16 @@ export const getCampaign = createAsyncThunk("campaign/getCampaign", async ({ cal
   }
 });
 
-export const getClaimable = createAsyncThunk("campaign/getClaimable", async (_, { dispatch }): Promise<CampaignType[]> => {
+export const getClaimable = createAsyncThunk("campaign/getClaimable", async ({ address }: { address: `0x${string}` }, { dispatch, getState }): Promise<CampaignType[]> => {
+  const token = await getStateToken(getState());
+
   try {
-    const { data } = await axios.get<Response<RawCampaignType[]>>(`${config.apiURL}/v1/claimable`);
+    const { data } = await axios.get<Response<RawCampaignType[]>>(`${config.apiURL}/v1/claimable?address=${address}`, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`,
+      },
+    });
     if (data.status) {
       return data.data.map(rawToCampaignType);
     }

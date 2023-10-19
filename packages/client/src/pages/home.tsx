@@ -3,6 +3,7 @@ import localizedFormat from "dayjs/plugin/localizedFormat";
 import relativeTime from "dayjs/plugin/relativeTime";
 import React from "react";
 import { useEffectOnce } from "usehooks-ts";
+import { useAccount } from "wagmi";
 import { useAppDispatch } from "../app/hooks";
 import Campaigns from "../components/Campaign/Campaigns";
 import Claimable from "../components/Home/Claimable";
@@ -15,15 +16,17 @@ dayjs.extend(localizedFormat);
 
 const Home: React.FC = () => {
   const dispatch = useAppDispatch();
+  const { address } = useAccount();
 
   useEffectOnce(() => {
-    dispatch(getCampaigns());
+    dispatch(getCampaigns({ address: address! }));
   });
 
   return (
     <>
       <Hero />
       <Claimable />
+      <Campaigns />
       <FeaturedUsers />
     </>
   );

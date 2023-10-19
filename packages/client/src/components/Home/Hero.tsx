@@ -1,9 +1,8 @@
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import Button from "@mui/joy/Button";
 import React, { useRef } from "react";
-import Section from "../Layout/Section";
 import "../../styles/Hero.css";
-import { Card } from "@mui/joy";
+import Section from "../Layout/Section";
 
 const Hero: React.FC = () => {
   const ref = useRef(null);
@@ -23,7 +22,6 @@ const Hero: React.FC = () => {
           </div>
         </Section>
       </section>
-      <div ref={ref} className="py-12"><br /></div>
       <main className="main flex gap-4 justify-between py-6">
         <Section>
           <div className="hero-det">

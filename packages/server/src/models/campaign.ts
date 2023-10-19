@@ -33,6 +33,7 @@ export type CampaignNftType = {
 export type Track = { track: number; image: string };
 
 export enum UserStateStatus {
+  NOT_START_YET = "not_start_yet",
   AVAILABLE = "available",
   REGISTERED = "registerd",
   ENDED = "ended",
@@ -113,36 +114,18 @@ export const getCampaign = async (id: ObjectId): Promise<WithId<CampaignBaseType
   return await campaignColl.findOne({ _id: id });
 };
 
-type OnlineCampaignRegister = {
-  _id?: string;
-  campaignId: string;
-  athletePubkey: string;
-  registerTime: number;
-};
+export const getCampaignsById = async (ids: ObjectId[]): Promise<WithId<CampaignBaseType>[]> => {
+  logger.info({ thread: "db", collection: collName, action: "getCampaignsById", ids });
 
-let onlineCampaignRegisterColl: Collection<OnlineCampaignRegister>;
-const onlineCampaignRegisterCollName = createDBCollName("campaign_register");
+  const cursor = campaignColl.find();
 
-export const onlineCampaignRegisterInit = async () => {
-  const { collection } = await dbCollection<OnlineCampaignRegister>(process.env.DB__NET42!, onlineCampaignRegisterCollName);
-  onlineCampaignRegisterColl = collection;
-  await onlineCampaignRegisterColl.createIndex({ init: 1 });
+  const campaigns = [];
 
-  logger.info({ thread: "db", data: "online campaign register inited" });
-};
+  for await (const campaign of cursor) {
+    campaigns.push(campaign);
+  }
 
-export const joinCampaign = async (campaignId, athlete) => {
-  // join campaign
-  await onlineCampaignRegisterColl.insertOne({ campaignId: campaignId, athletePubkey: athlete.pubkey, registerTime: Date.now() });
-};
-
-export const getJoinedCampaign = async (campaignId, athletePubkey) => {
-  console.log(athletePubkey);
-  return await onlineCampaignRegisterColl.findOne({ campaignId: campaignId, athletePubkey: athletePubkey });
-};
-
-export const getJoinedCampaigns = async (athleteId) => {
-  return await onlineCampaignRegisterColl.find({ athletePubkey: athleteId }).toArray();
+  return campaigns;
 };
 
 export const getAllCampaigns = async (): Promise<CampaignDocument[]> => {
@@ -192,3 +175,5 @@ export const createNet42Medal = async (
 
   return { baseNft, nft };
 };
+
+export const getCampaignJoined = () => {};

@@ -29,6 +29,7 @@
     "@radix-ui/react-popover": "1.0.7",
     "@radix-ui/react-tabs": "^1.0.4",
     "@reduxjs/toolkit": "^1.9.7",
+    "@rollup/plugin-inject": "^5.0.5",
     "@safe-global/auth-kit": "^1.2.1",
     "@sindresorhus/class-names": "^2.0.0",
     "@trivago/prettier-plugin-sort-imports": "^4.2.0",

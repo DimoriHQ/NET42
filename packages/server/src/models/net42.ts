@@ -4,9 +4,11 @@ import { DB__NET42, SIGNER_PRIVATE_KEY } from "../config";
 import logger from "../utils/log";
 import { createDBCollName } from "../db/createDBCollName";
 import { httpProvider, net42Contract } from "../services/ether";
-import { CampaignBaseType } from "./campaign";
+import { CampaignBaseType, UserStateStatus } from "./campaign";
 import { ethers } from "ethers";
 import abi from "ethereumjs-abi";
+import dayjs from "dayjs";
+import { getCampaignsByUser } from "./user";
 
 // NFT
 export type NET42NftType = {
@@ -72,7 +74,7 @@ export const net42BaseToftType = (campaign: CampaignBaseType, base: NET42Base): 
 
 type NET42Document = NET42Base & Document;
 
-let nftColl: Collection<NET42Base>;
+export let nftColl: Collection<NET42Base>;
 
 const collName = createDBCollName("nft");
 
@@ -136,6 +138,30 @@ export const getNft = async (id: string) => {
   return await nftColl.findOne({ _id: objectId });
 };
 
+export const getNfts = async (campaign: CampaignBaseType, type: 0 | 1, participant: string, hasNft: boolean = false): Promise<WithId<NET42Base>[]> => {
+  logger.info({ thread: "db", collection: collName, action: "getNfts", participant });
+
+  const filter: { campaignId: ObjectId; type: 0 | 1; participant: string; nftId?: { $ne: null } } = { campaignId: campaign._id, type, participant };
+
+  if (hasNft) {
+    filter.nftId = { $ne: null };
+  } else {
+    filter.nftId = null;
+  }
+
+  const cursor = nftColl.find(filter);
+
+  const nfts: (WithId<NET42Base> & { proof: string })[] = [];
+
+  for await (const raw of cursor) {
+    const nft = { ...raw, proof: await createNftProof(raw) };
+
+    nfts.push(nft);
+  }
+
+  return nfts;
+};
+
 export const createNftProof = async (nft: NET42Base): Promise<string> => {
   const signer = await createSigner();
 
@@ -177,4 +203,69 @@ export const getBlockchainNftMedalId = async (id: number): Promise<string> => {
 export const updateNftId = async (medalId: string, nftId: number, owner: string) => {
   const objectId = ObjectId.createFromHexString(medalId);
   await nftColl.updateOne({ _id: objectId }, { $set: { nftId, owner } });
+};
+
+export type ClaimableType = {
+  campaign: WithId<CampaignBaseType>;
+  status: UserStateStatus;
+  nfts: WithId<NET42Base>[];
+  claimedNfts: WithId<NET42Base>[];
+  registeredNft: WithId<NET42Base>;
+  registeredNftNotClaimed: WithId<NET42Base>;
+};
+
+export const getNftClaimable = async (participant: string): Promise<ClaimableType[]> => {
+  const current = dayjs();
+
+  const campaigns = await getCampaignsByUser(participant);
+  const data = await Promise.all(
+    campaigns.map(async (campaign) => {
+      // TO-DO: parse strava data and create nfts
+
+      const nfts = await getNfts(campaign, 1, participant, false);
+      const claimedNfts = await getNfts(campaign, 1, participant, true);
+      const registeredNft = await nftColl.findOne({ campaignId: campaign._id, participant, type: 0, nftId: { $ne: null } });
+      const registeredNftNotClaimed = await nftColl.findOne({ campaignId: campaign._id, participant, type: 0, nftId: null });
+
+      if (dayjs(campaign.startTime).isAfter(current)) {
+        return { campaign, status: UserStateStatus.NOT_START_YET, nfts, claimedNfts, registeredNft, registeredNftNotClaimed };
+      }
+
+      if (nfts.length > 0) {
+        return { campaign, status: UserStateStatus.CLAIMABLE, nfts, claimedNfts, registeredNft, registeredNftNotClaimed };
+      }
+
+      if (claimedNfts.length === campaign.tracks.length) {
+        return { campaign, status: UserStateStatus.FINISHED, nfts, claimedNfts, registeredNft, registeredNftNotClaimed };
+      }
+
+      if (campaign.tracks.length > 1) {
+        if (claimedNfts.length > 0) {
+          return { campaign, status: UserStateStatus.FINISHED, nfts, claimedNfts, registeredNft, registeredNftNotClaimed };
+        }
+      }
+
+      if (claimedNfts.length === 0) {
+        return { campaign, status: UserStateStatus.UNFINISHED, nfts, claimedNfts, registeredNft, registeredNftNotClaimed };
+      }
+
+      if (campaign.hasEndTime) {
+        if (dayjs(campaign.endTime).isBefore(current)) {
+          return { campaign, status: UserStateStatus.ENDED, nfts, claimedNfts, registeredNft, registeredNftNotClaimed };
+        }
+      }
+
+      if (registeredNft) {
+        return { campaign, status: UserStateStatus.REGISTERED, nfts, claimedNfts, registeredNft, registeredNftNotClaimed };
+      }
+
+      if (registeredNftNotClaimed) {
+        return { campaign, status: UserStateStatus.AVAILABLE, nfts, claimedNfts, registeredNft, registeredNftNotClaimed };
+      }
+
+      return { campaign, status: UserStateStatus.AVAILABLE, nfts, claimedNfts, registeredNft, registeredNftNotClaimed };
+    }),
+  );
+
+  return data;
 };

@@ -41,11 +41,11 @@ export const createCampaign = async (ctx: KoaContext) => {
   const { name, description, standardCode, imageURL, bannerURL, registeredImageURL, unfinishedImageURL, finishedImageURL } = body;
   const registerTime = dayjs(body.registerTime);
   const startTime = dayjs(body.startTime);
-  const hasEndTime = body.hasEndTime === "true" ? true : false;
-  const endTime = dayjs(body.registerTime);
+  const hasEndTime = body.hasEndTime === "1" ? true : false;
+  const endTime = dayjs(body.endTime);
 
   const trackable = body.trackable === "1" ? true : false;
-  const stravaData = body.stravaData === "true" ? true : false;
+  const stravaData = body.stravaData === "1" ? true : false;
 
   const files = ctx.request.files;
 

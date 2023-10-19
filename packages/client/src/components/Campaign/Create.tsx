@@ -5,6 +5,7 @@ import dayjs from "dayjs";
 import { useState } from "react";
 import { Controller, SubmitHandler, useFieldArray, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
+import { useAccount } from "wagmi";
 import { useAppDispatch } from "../../app/hooks";
 import { createCampaign } from "../../features/campaigns/reducer";
 import { createFilePath, web3StorageClient } from "../../services/web3storage";
@@ -36,6 +37,7 @@ const CreateCampaign: React.FC = () => {
   const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { address } = useAccount();
 
   const {
     control,
@@ -81,7 +83,7 @@ const CreateCampaign: React.FC = () => {
     formData.append("registeredImageURL", registeredImageURL);
     formData.append("unfinishedImageURL", unfinishedImageURL);
 
-    if (!values.trackable) {
+    if (values.trackable !== "1") {
       const finishedImageCid = await web3StorageClient.put(values.finishedImage);
       const finishedImageURL = createFilePath(finishedImageCid, values.finishedImage[0].name);
 
@@ -96,12 +98,13 @@ const CreateCampaign: React.FC = () => {
 
     formData.append("trackable", values.trackable);
     formData.append("standardCode", values.standardCode || "");
+    formData.append("stravaData", values.stravaData ? "1" : "0");
 
-    if (values.trackable) {
+    if (values.trackable === "1") {
       await Promise.all(
-        values.tracks.map(async (track) => {
+        values.tracks.map(async (track, index) => {
           const tracksImageCid = await web3StorageClient.put(track.image!);
-          const tracksImageURL = createFilePath(tracksImageCid, values.image![0].name);
+          const tracksImageURL = createFilePath(tracksImageCid, track.image![0].name);
 
           formData.append("tracksValue[]", track.track);
           formData.append("tracksImage[]", track.image![0]);
@@ -112,6 +115,8 @@ const CreateCampaign: React.FC = () => {
 
     dispatch(
       createCampaign({
+        address: address!,
+
         campaign: formData,
         callback: (last) => {
           navigate(`/campaign/${last._id}`);
@@ -150,6 +155,7 @@ const CreateCampaign: React.FC = () => {
                     />
                   </ListItemContent>
                 </ListItem>
+
                 <ListItem>
                   <ListItemContent>
                     <div>Start Time</div>
@@ -162,6 +168,7 @@ const CreateCampaign: React.FC = () => {
                     <Checkbox {...register("hasEndTime")} checked={values.hasEndTime} />
                   </ListItemContent>
                 </ListItem>
+
                 {values.hasEndTime && (
                   <ListItem>
                     <ListItemContent>
@@ -186,6 +193,7 @@ const CreateCampaign: React.FC = () => {
             <VisuallyHiddenInput type="file" {...register("banner", { required: "Banner is required" })} />
           </Button>
           <FormError label={errors.banner} />
+
           {values.image?.length ? <img width={150} src={URL.createObjectURL(values.image[0])} /> : null}
           <Button component="label" role={undefined} tabIndex={-1} variant="outlined" color="neutral" startDecorator={<UploadIcon />}>
             Thumbnail

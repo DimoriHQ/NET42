@@ -1,4 +1,5 @@
 import * as GlobalPolyFill from "@esbuild-plugins/node-globals-polyfill";
+import inject from "@rollup/plugin-inject";
 import react from "@vitejs/plugin-react-swc";
 import { defineConfig, splitVendorChunkPlugin } from "vite";
 
@@ -24,6 +25,11 @@ export default defineConfig({
       stream: "stream-browserify",
       // zlib: "browserify-zlib",
       util: "util",
+    },
+  },
+  build: {
+    rollupOptions: {
+      plugins: [inject({ Buffer: ["buffer", "Buffer"] })],
     },
   },
 });

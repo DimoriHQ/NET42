@@ -1,14 +1,13 @@
+import { Box, Button, Link } from "@mui/joy";
+import Typography from "@mui/joy/Typography";
 import { disconnect } from "@wagmi/core";
 import { ethers } from "ethers";
 import React from "react";
 import { useAccount } from "wagmi";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { clearAuth, selectAuth, setProvider, verify } from "../../features/authentication/reducer";
-import Section from "../Layout/Section";
-import { Box, Button, Link } from "@mui/joy";
-import Typography from '@mui/joy/Typography';
 import "../../styles/header.css";
-// import ColorSchemeToggle from './ColorSchemeToggle';
+import Section from "../Layout/Section";
 
 const Header: React.FC = () => {
   const auth = useAppSelector(selectAuth);
@@ -30,15 +29,16 @@ const Header: React.FC = () => {
 
   const Profile = () => {
     if (isConnected) {
-      return (  
+      return (
         <div>
           <div>
-            <Button color="neutral" variant="solid"><a href={`/profile/${address}`}>My profile: {address.slice(0, 8)}</a></Button>
+            <Button color="neutral" variant="solid">
+              <a href={`/profile/${address}`}>{address!.slice(0, 8)}</a>
+            </Button>
             <Button color="danger" onClick={logout}>
-          Logout
-          </Button>
+              Logout
+            </Button>
           </div>
-          
         </div>
       );
     } else {
@@ -51,53 +51,55 @@ const Header: React.FC = () => {
   };
 
   return (
-      <header className="header">
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          width: '100%',
-          top: 0,
-          px: 1,
-          py: 1,
-          zIndex: 10000,
-          // backgroundColor: 'black',
-          // opacity: 0.8,
-          // borderBottom: '1px solid',
-          borderColor: 'divider',
-          position: 'sticky',
-        }}
-      >
+    <header className="header">
+      <Section>
         <Box
           sx={{
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 1.5,
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            width: "100%",
+            top: 0,
+            px: 1,
+            py: 1,
+            zIndex: 10000,
+            // backgroundColor: 'black',
+            // opacity: 0.8,
+            // borderBottom: '1px solid',
+            borderColor: "divider",
+            position: "sticky",
           }}
         >
-          <Link href="/">
-            <img src="/images/n42.png" width={100} />
-          </Link>
-          <Typography component="h1" fontSize="lg" fontWeight="xl" textColor="white">
-            Net Forty-Two
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 3 }}>
           <Box
             sx={{
-              gap: 1,
-              alignItems: 'center',
-              display: { xs: 'none', sm: 'flex' },
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 1.5,
             }}
           >
-            <div>{Profile()}</div>
+            <Link href="/">
+              <img src="/images/n42.png" width={100} />
+            </Link>
+            <Typography component="h1" fontSize="lg" fontWeight="xl" textColor="white">
+              Net Forty-Two
+            </Typography>
+          </Box>
+          <Box sx={{ display: "flex", flexDirection: "row", gap: 3 }}>
+            <Box
+              sx={{
+                gap: 1,
+                alignItems: "center",
+                display: { xs: "none", sm: "flex" },
+              }}
+            >
+              <div>{Profile()}</div>
+            </Box>
           </Box>
         </Box>
-      </Box>
-      </header>
+      </Section>
+    </header>
   );
 };
 
