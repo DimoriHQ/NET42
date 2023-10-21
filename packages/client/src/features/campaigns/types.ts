@@ -170,7 +170,6 @@ export type CampaignReducer = {
   isInit: boolean;
 
   campaigns: CampaignType[];
-  claimable: ClaimableResponseType;
 };
 
 export const defaultCampaignReducer: CampaignReducer = {
@@ -178,7 +177,6 @@ export const defaultCampaignReducer: CampaignReducer = {
   isInit: false,
 
   campaigns: [],
-  claimable: [],
 };
 
 export type UserTrack = {
@@ -252,5 +250,3 @@ export type ClaimableType = {
   registeredNftNotClaimed?: WithId<NET42Base>;
   distance: 0;
 };
-
-export type ClaimableResponseType = WithId<NET42Base>[];

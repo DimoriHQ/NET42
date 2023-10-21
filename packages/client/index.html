@@ -17,9 +17,10 @@
   <script type="module">
     import process from "process";
     import EventEmitter from "events";
-    window.EventEmitter = EventEmitter;
     import { Buffer } from "buffer/";
-
+    window.process = process;
+    window.EventEmitter = EventEmitter;
+    globalThis.Buffer = Buffer;
   </script>
   <script type="module" src="/src/main.tsx"></script>
 </body>

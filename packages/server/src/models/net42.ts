@@ -123,12 +123,14 @@ export const isTrackNftExistIndex = async (campaign: WithId<CampaignBaseType>, o
 };
 
 export const handleNftId = async (id: number) => {};
+
 export const updateNftOwner = async (id: number) => {
-  // const nft = await nftColl.findOne({ _id: id });
-  // if (!nft) return;
-  // const owner = await net42Contract.ownerOf(id);
-  // logger.info({ thread: "model", model: "nft", message: `update owner ${id} ${owner}` });
-  // await nftColl.updateOne({ _id: id }, { $set: { owner } });
+  const nft = await nftColl.findOne({ nftId: id });
+  if (!nft) return;
+
+  const owner = await net42Contract.ownerOf(id);
+  logger.info({ thread: "model", model: "nft", message: `update owner ${id} ${owner}` });
+  await nftColl.updateOne({ _id: nft._id }, { $set: { owner } });
 };
 
 export const createNft = async (nft: NET42Base) => {
@@ -231,7 +233,7 @@ export const getNftClaimable = async (participant: string): Promise<ClaimableTyp
 
       await Promise.all(
         campaign.tracks.map(async (track, index) => {
-          if (distance > track.track) {
+          if (distance >= track.track) {
             const nft = await isTrackNftExistIndex(campaign, participant, index);
 
             if (!nft) {
@@ -242,7 +244,8 @@ export const getNftClaimable = async (participant: string): Promise<ClaimableTyp
         }),
       );
 
-      const nfts = await getNfts(campaign, 1, participant, false);
+      const nfts = await Promise.all((await getNfts(campaign, 1, participant, false)).map(async (nft) => ({ ...nft, data: net42BaseToftType(campaign, nft), proof: await createNftProof(nft) })));
+
       const claimedNfts = await getNfts(campaign, 1, participant, true);
       const registeredNft = await nftColl.findOne({ campaignId: campaign._id, participant, type: 0, nftId: { $ne: null } });
       const registeredNftNotClaimed = await nftColl.findOne({ campaignId: campaign._id, participant, type: 0, nftId: null });

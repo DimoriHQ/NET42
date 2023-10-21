@@ -12,6 +12,7 @@ export const getClaimable = async (ctx: KoaContext) => {
 
   const participant = ctx.address;
   const data = await getNftClaimable(participant);
+
   const result = await Promise.all(
     data.map(
       async (item) =>

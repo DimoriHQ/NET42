@@ -166,7 +166,7 @@ const Campaign: React.FC<{ campaign: CampaignType }> = ({ campaign }) => {
                           onClick={() => removeAll()}
                           className="flex-1 bg-[#8d1cfe] max-w-[200px] text-[16px] leading-[32px] font-bold px-6 py-2 border border-none rounded-3xl flex space-x-2 justify-center items-center"
                         >
-                          <p>Go to campaign</p>
+                          <p>Close</p>
                           <Exit size={20} />
                         </button>
                       </div>

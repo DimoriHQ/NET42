@@ -103,8 +103,6 @@ const upload = multer();
   router.get("/campaign/:id", getCampaigns);
   router.post("/campaign/:id/register", registerCampaign);
 
-  router.get("/claimable", getClaimable);
-
   router.post("/strava/request", connectStravaRequest);
   router.get("/strava/callback", connectStrava);
   router.post("/strava/disconnect", disconnectStrava);

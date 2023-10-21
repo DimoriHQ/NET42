@@ -1,18 +1,18 @@
-import { Button, Card, CardContent, Grid, Typography } from "@mui/joy";
+import { Button, Card, CardContent, Grid } from "@mui/joy";
 import { Exit } from "@styled-icons/boxicons-regular";
 import { TravelExplore } from "@styled-icons/material-outlined";
 import React, { useEffect, useState } from "react";
 import { useAccount, useContractReads, useContractWrite, useWaitForTransaction } from "wagmi";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import config from "../../config";
-import { getCampaigns, getClaimable, selectCampaign } from "../../features/campaigns/reducer";
+import { getCampaigns, selectCampaign } from "../../features/campaigns/reducer";
 import { sleep } from "../../services/utils/sleep";
 import Cointainer from "../Layout/Container";
 import Popup from "../Popup/Popup";
 import { usePopups } from "../Popup/PopupProvider";
 import { setToast } from "../Toast/toastReducer";
 
-const Claimable: React.FC<{ showWithoutNfts: boolean }> = ({ showWithoutNfts = true }) => {
+const Claimable: React.FC<{ showWithoutNfts: boolean; campaignId?: string }> = ({ showWithoutNfts = true, campaignId = null }) => {
   const campaign = useAppSelector(selectCampaign);
   const dispatch = useAppDispatch();
 
@@ -21,10 +21,6 @@ const Claimable: React.FC<{ showWithoutNfts: boolean }> = ({ showWithoutNfts = t
   const { addPopup, removeAll } = usePopups();
 
   const { address, isConnected } = useAccount();
-
-  useEffect(() => {
-    dispatch(getClaimable({ isConnected }));
-  }, []);
 
   // start
   const {
@@ -136,7 +132,7 @@ const Claimable: React.FC<{ showWithoutNfts: boolean }> = ({ showWithoutNfts = t
                           onClick={() => removeAll()}
                           className="flex-1 bg-[#8d1cfe] max-w-[200px] text-[16px] leading-[32px] font-bold px-6 py-2 border border-none rounded-3xl flex space-x-2 justify-center items-center"
                         >
-                          <p>Go to campaign</p>
+                          <p>Exit</p>
                           <Exit size={20} />
                         </button>
                       </div>
@@ -183,51 +179,55 @@ const Claimable: React.FC<{ showWithoutNfts: boolean }> = ({ showWithoutNfts = t
         ) : (
           ""
         )}
-        {campaign.claimable.length ? (
-          <div className="py-16">
-            {campaign.claimable.map((nft) => {
-              return (
-                <Grid key={nft._id} xs={12} sm={6} md={3} display="flex" alignItems="center" minHeight={180}>
-                  <Card sx={{ width: 320 }}>
-                    <div>
-                      <Typography level="title-lg">{nft.data.name}</Typography>
-                    </div>
-                    <img src={nft.data.image} alt="" />
 
-                    <CardContent orientation="horizontal">
-                      <div>
-                        <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
-                          NFT Medal
-                        </span>
-                      </div>
-                      <Button
-                        variant="solid"
-                        size="md"
-                        color="primary"
-                        sx={{ ml: "auto", alignSelf: "center", fontWeight: 600 }}
-                        onClick={async () => {
-                          setMinting(true);
+        {campaign.campaigns.length ? (
+          <div className="flex gap-4">
+            {campaign.campaigns.map((campaign) => {
+              if (campaignId) {
+                if (campaignId !== campaign._id) return null;
+              }
 
-                          if (!valid) return;
+              return campaign.claim.nfts.map((nft) => {
+                return (
+                  <Grid key={nft._id} xs={12} sm={6} md={3} display="flex" alignItems="center" minHeight={180}>
+                    <Card sx={{ width: 320 }}>
+                      <div className="truncate font-bold text-[16px]">{nft.data.name}</div>
+                      <img src={nft.data.image} alt={nft.data.name} />
 
-                          try {
-                            console.log(nft.campaignId, nft.type, nft._id, nft.metadata, nft.proof, "long");
-                            write({
-                              args: [nft.campaignId, nft.type, nft._id, nft.metadata, nft.proof],
-                            });
-                          } catch (error) {
-                            console.error(error);
-                            setMinting(false);
-                          }
-                        }}
-                        loading={minting}
-                      >
-                        Claim
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              );
+                      <CardContent orientation="horizontal">
+                        <div>
+                          <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                            NFT Medal
+                          </span>
+                        </div>
+                        <Button
+                          variant="solid"
+                          size="md"
+                          color="primary"
+                          sx={{ ml: "auto", alignSelf: "center", fontWeight: 600 }}
+                          onClick={async () => {
+                            setMinting(true);
+
+                            if (!valid) return;
+
+                            try {
+                              write({
+                                args: [nft.campaignId, nft.type, nft._id, nft.metadata, nft.proof],
+                              });
+                            } catch (error) {
+                              console.error(error);
+                              setMinting(false);
+                            }
+                          }}
+                          loading={minting}
+                        >
+                          Claim
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                );
+              });
             })}
           </div>
         ) : (

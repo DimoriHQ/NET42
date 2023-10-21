@@ -158,7 +158,7 @@ const CampaignDetail: React.FC = () => {
                           onClick={() => removeAll()}
                           className="flex-1 bg-[#8d1cfe] max-w-[200px] text-[16px] leading-[32px] font-bold px-6 py-2 border border-none rounded-3xl flex space-x-2 justify-center items-center"
                         >
-                          <p>Go to campaign</p>
+                          <p>Close</p>
                           <Exit size={20} />
                         </button>
                       </div>
@@ -281,7 +281,6 @@ const CampaignDetail: React.FC = () => {
     <>
       <section className="">
         <Container>
-          <div className="text-[30px] text-center font-bold">{campaign.isLoading ? "Loading ..." : ""}</div>
           <div className="mx-auto w-full overflow-hidden rounded">
             <div className="relative z-20 h-[140px] sm:h-[160px] md:h-auto">
               <img src={current.banner} alt="profile cover" className="h-full w-full object-cover object-center" />
@@ -306,6 +305,9 @@ const CampaignDetail: React.FC = () => {
               </div>
             </div>
           </div>
+
+          <div className="text-[30px] text-center font-bold">{campaign.isLoading ? "Loading ..." : ""}</div>
+
           <div className="mb-6">
             <Stepper activeStep={0} alternativeLabel>
               {marks.map((label) => (
@@ -315,6 +317,7 @@ const CampaignDetail: React.FC = () => {
               ))}
             </Stepper>
           </div>
+
           <div className="mb-6">
             Curent process:{" "}
             <span className="text-[19px]">
@@ -324,7 +327,8 @@ const CampaignDetail: React.FC = () => {
           </div>
         </Container>
       </section>
-      <Claimable showWithoutNfts={false} />
+
+      <Claimable showWithoutNfts={false} campaignId={current._id!} />
       <section className="bg-[#F6F6F6] px-6 py-[56px]">
         <Container>
           <div className="text-[26px] font-bold mb-6">Tracks</div>

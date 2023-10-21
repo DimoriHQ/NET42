@@ -1,10 +1,17 @@
 import * as GlobalPolyFill from "@esbuild-plugins/node-globals-polyfill";
+import inject from "@rollup/plugin-inject";
 import react from "@vitejs/plugin-react-swc";
-import { defineConfig, splitVendorChunkPlugin } from "vite";
+import { defineConfig } from "vite";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), splitVendorChunkPlugin()],
+  define: {
+    "process.env": "{NODE_ENV: 'production'}",
+    "process.env.NODE_ENV": '"production"',
+    "process.version": "'v0.0.1'",
+    // process: `{env: {}, version: "v0.0.1"}`,
+  },
+  plugins: [react()],
   optimizeDeps: {
     esbuildOptions: {
       define: {
@@ -20,10 +27,20 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      // process: "process/browser",
       stream: "stream-browserify",
-      // zlib: "browserify-zlib",
       util: "util",
+      // process: "process/browser",
+      // zlib: "browserify-zlib",
+    },
+  },
+  build: {
+    rollupOptions: {
+      plugins: [
+        inject({
+          // include: ["node_modules/tweetnacl-util/**"],
+          modules: { Buffer: ["buffer", "Buffer"] },
+        }),
+      ],
     },
   },
 });
