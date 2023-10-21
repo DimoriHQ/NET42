@@ -1,6 +1,5 @@
 import { KoaContext } from "../global";
 import { errorResponse } from "../services/response";
-import { getCampaignsByUser } from "../models/user";
 import { getNftClaimable } from "../models/net42";
 
 export const getClaimable = async (ctx: KoaContext) => {

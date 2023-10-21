@@ -246,7 +246,7 @@ export const getNftClaimable = async (participant: string): Promise<ClaimableTyp
       }
 
       if (claimedNfts.length === 0) {
-        return { campaign, status: UserStateStatus.UNFINISHED, nfts, claimedNfts, registeredNft, registeredNftNotClaimed };
+        if (registeredNft) return { campaign, status: UserStateStatus.UNFINISHED, nfts, claimedNfts, registeredNft, registeredNftNotClaimed };
       }
 
       if (campaign.hasEndTime) {

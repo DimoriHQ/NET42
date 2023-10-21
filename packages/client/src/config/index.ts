@@ -9,9 +9,7 @@ const web3StorageAPIToken = import.meta.env.VITE_WEB3_STORAGE_API_TOKEN! as stri
 const config = {
   contractAddress,
   contract: {
-    address: {
-      scroll: contractAddress,
-    },
+    address: contractAddress,
     abi: abi as any,
   },
   explorerURL,

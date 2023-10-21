@@ -1,6 +1,7 @@
+import { WithId } from "mongodb";
 import { KoaContext } from "../global";
-import { getAllCampaigns } from "../models/campaign";
-import { getNftClaimable } from "../models/net42";
+import { CampaignBaseType, UserStateStatus, getAllCampaigns } from "../models/campaign";
+import { ClaimableType, getNftClaimable } from "../models/net42";
 import { successResponse } from "../services/response";
 
 export const getCampaigns = async (ctx: KoaContext) => {
@@ -8,23 +9,36 @@ export const getCampaigns = async (ctx: KoaContext) => {
 
   const address = ctx.address;
 
-  console.log(address);
-
   let data = campaigns;
   if (address) {
     const claimable = await getNftClaimable(address);
 
-    console.log(claimable);
-
     data = await Promise.all(
       campaigns.map(async (campaign) => {
-        const claim = claimable.find((item) => item.campaign._id.equals(campaign._id));
+        const claim = claimable.find((item) => {
+          return item.campaign._id.equals(campaign._id);
+        });
 
-        const data = { ...claim, ...campaign };
+        const data = { ...campaign, claim };
         return data;
       }),
     );
   } else {
+    data = await Promise.all(
+      campaigns.map(async (campaign) => {
+        const claim: ClaimableType = {
+          campaign: campaign as WithId<CampaignBaseType>,
+          status: UserStateStatus.AVAILABLE,
+          nfts: [],
+          claimedNfts: [],
+          registeredNft: undefined,
+          registeredNftNotClaimed: undefined,
+        };
+
+        const data = { ...campaign, claim };
+        return data;
+      }),
+    );
   }
 
   ctx.status = 200;

@@ -5,10 +5,43 @@ import { DB__NET42 } from "../config";
 import { createDBCollName } from "../db/createDBCollName";
 import { CampaignBaseType, createNet42Medal, getCampaignsById } from "./campaign";
 import { NET42Base, NET42NftType, createNft, createNftProof, isRegisterdNftExist, net42BaseToftType } from "./net42";
+import randomstring from "randomstring";
 
 export type User = {
   address: string;
   joined: ObjectId[];
+  stravaOAuth2?: StravaOAuth2Type;
+  stravaRequest?: string;
+};
+
+export type StravaOAuth2Type = {
+  token_type: "Bearer";
+  expires_at: number;
+  expires_in: number;
+  refresh_token: string;
+  access_token: string;
+  athlete: {
+    id: number;
+    username: string;
+    resource_state: number;
+    firstname: string;
+    lastname: string;
+    bio: string;
+    city: string;
+    state: string;
+    country: string;
+    sex: string;
+    premium: boolean;
+    summit: boolean;
+    created_at: string;
+    updated_at: string;
+    badge_type_id: number;
+    weight: number;
+    profile_medium: string;
+    profile: string;
+    friend: any;
+    follower: any;
+  };
 };
 
 type UserDocument = User & Document;
@@ -88,3 +121,44 @@ export const getCampaignsByUser = async (address: string) => {
 
   return campaigns;
 };
+
+export const createStravaRequest = async (address: string) => {
+  const stravaRequest = randomstring.generate();
+  await userColl.updateOne({ address }, { $set: { stravaRequest } });
+
+  return stravaRequest;
+};
+
+export const updateStravaConnect = async (requestCode: string, stravaOAuth2: StravaOAuth2Type) => {
+  await userColl.updateOne({ stravaRequest: requestCode }, { $set: { stravaOAuth2 } });
+};
+
+export const isStravaConnected = async (address: string) => {
+  const user = await getUser(address);
+
+  return !!user.stravaOAuth2;
+};
+
+// export const getTrackingData = async (access_token: string, registertime: number, endtime: number, page: number, per_page: number) => {
+//   const link = `${process.env.STRAVA_ATHLETE_LINK}/activities?before=${endtime}&after=${registertime}&page=${page}&per_page=${per_page}`;
+
+//   const data = await axios.get(link, {
+//     headers: {
+//       Authorization: `Bearer ${access_token}`,
+//     },
+//   });
+
+//   return data.data.filter((e: any) => {
+//     return e.name.includes("Run");
+//   });
+// };
+
+// export const getDistance = async (activities: any) => {
+//   var total_distance = 0;
+//   if (activities) {
+//     activities.forEach((e: any) => {
+//       total_distance += e["distance"];
+//     });
+//   }
+//   return total_distance;
+// };

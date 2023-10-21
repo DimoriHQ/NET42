@@ -176,4 +176,6 @@ export const createNet42Medal = async (
   return { baseNft, nft };
 };
 
-export const getCampaignJoined = () => {};
+export const getCampaignJoined = (campaign: CampaignBaseType) => {
+  return 0;
+};

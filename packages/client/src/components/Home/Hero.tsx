@@ -1,49 +1,42 @@
-import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
-import Button from "@mui/joy/Button";
-import React, { useRef } from "react";
-import "../../styles/Hero.css";
-import Section from "../Layout/Section";
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { useAccount } from "wagmi";
+import Connect from "../Button/Connect";
+import Discord from "../Icon/Discord";
+import Twitter from "../Icon/Twitter";
+import Span from "../Span/Span";
 
 const Hero: React.FC = () => {
-  const ref = useRef(null);
-  const handleClick = () => {
-    ref.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  const { isConnected } = useAccount();
+  const navigate = useNavigate();
+
   return (
-    <div>
-      <section className="hero">
-        <Section>
-          <div className="hero-inner">
-            <h1>NET42</h1>
-            <h2>Learn more about NET42.run</h2>
-            <Button variant="solid" endDecorator={<KeyboardArrowRightIcon />} className="btn" onClick={handleClick}>
-              Read more
-            </Button>
+    <section className="pt-[40px] pb-[100px]">
+      <div className="flex flex-col-reverse lg:flex-row justify-between items-center max-w-[1040px] mx-auto px-[24px]">
+        <div className="flex flex-col gap-[23px] w-[420px] max-w-[100%] mb-[24px]">
+          <div className="text-[42px]">
+            NET42: The Future of <br /> <Span className="font-bold">Marathon Rewards</Span>
           </div>
-        </Section>
-      </section>
-      <main className="main flex gap-4 justify-between py-6">
-        <Section>
-          <div className="hero-det">
-            <p>
-              Welcome to the world of NFTerraPace, where every step you take not only boosts your health but also fuels a brighter future. We're on a mission to infuse running with
-              purpose and passion, driven by the magic of NFTs and the boundless potential of Web3.
-            </p>
-            <br />
-            <p>
-              Within the fitness community, there is a growing need for motivation, engagement, and sustainability. Traditional fitness apps often lack compelling incentives and a
-              sense of community, particularly in addressing environmental impact and supporting social causes. Meanwhile, runners seek ways to contribute beyond their personal
-              health and turn their passion into a force for good.
-            </p>
-            <br />
-            <p>
-              NFTerraPace tackles these issues head-on. We're building a platform that encourages users to run not only for personal health, but also environmental and social
-              causes. Our secret sauce? NFT-based rewards. Imagine earning unique digital tokens for your running achievements and using them to support social causes.
-            </p>
+          <div className="text-[20px] font-light">
+            Where marathon passion meets tech innovation. At NET42, we're redefining rewards and connecting sponsors to causes. Join us in shaping the future of marathon running
           </div>
-        </Section>
-      </main>
-    </div>
+          <div>
+            <div className="flex gap-[16px] items-center">
+              <a href="https://twitter.com/NET42run" target="_blank" rel="noopener noreferrer">
+                <Twitter />
+              </a>
+              <a href="https://discord.gg/9kPGuWwq" target="_blank" rel="noopener noreferrer">
+                <Discord />
+              </a>
+              <Connect />
+            </div>
+          </div>
+        </div>
+        <div className="flex">
+          <img src="/images/hero.png" alt="Hero" className="block items-end w-[530px]" />
+        </div>
+      </div>
+    </section>
   );
 };
 

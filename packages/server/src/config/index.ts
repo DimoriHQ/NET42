@@ -24,3 +24,8 @@ export const S3_REGION = process.env.S3_REGION!;
 export const WEB3_STORAGE_API_TOKEN = process.env.WEB3_STORAGE_API_TOKEN!;
 
 export const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY!;
+
+export const STRAVA_CLIENT_ID = process.env.STRAVA_CLIENT_ID!;
+export const STRAVA_CLIENT_SECRET = process.env.STRAVA_CLIENT_SECRET!;
+export const STRAVA_REDIRECT = process.env.STRAVA_REDIRECT!;
+export const STRAVA_UI_REDIRECT = process.env.STRAVA_UI_REDIRECT!;

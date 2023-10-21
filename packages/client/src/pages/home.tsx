@@ -2,32 +2,29 @@ import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import relativeTime from "dayjs/plugin/relativeTime";
 import React from "react";
-import { useEffectOnce } from "usehooks-ts";
-import { useAccount } from "wagmi";
-import { useAppDispatch } from "../app/hooks";
 import Campaigns from "../components/Campaign/Campaigns";
 import Claimable from "../components/Home/Claimable";
-import FeaturedUsers from "../components/Home/FeaturedUsers";
+import For from "../components/Home/For";
 import Hero from "../components/Home/Hero";
-import { getCampaigns } from "../features/campaigns/reducer";
+import Join from "../components/Home/Join";
+import Medal from "../components/Home/Medal";
+import Sponsorship from "../components/Home/Sponsorship";
+import Why from "../components/Home/Why";
 
 dayjs.extend(relativeTime);
 dayjs.extend(localizedFormat);
 
 const Home: React.FC = () => {
-  const dispatch = useAppDispatch();
-  const { address } = useAccount();
-
-  useEffectOnce(() => {
-    dispatch(getCampaigns({ address: address! }));
-  });
-
   return (
     <>
       <Hero />
+      <Why />
       <Claimable />
       <Campaigns />
-      <FeaturedUsers />
+      <Medal />
+      <Sponsorship />
+      <For />
+      <Join />
     </>
   );
 };

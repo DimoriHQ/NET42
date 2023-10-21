@@ -17,6 +17,7 @@ export type AuthReducer = {
   isVerifyLoading: boolean;
   isVerify: boolean;
   isAdmin: boolean;
+  isStravaConnected: boolean;
 
   token: string;
 };
@@ -29,6 +30,7 @@ export const defaultAuthReducer: AuthReducer = {
   isVerifyLoading: false,
   isVerify: false,
   isAdmin: false,
+  isStravaConnected: false,
 
   token: tokenStorage.get(""),
 };

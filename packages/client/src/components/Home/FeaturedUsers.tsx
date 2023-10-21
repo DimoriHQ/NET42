@@ -1,7 +1,6 @@
 import Table from "@mui/joy/Table";
 import React from "react";
-import "../../styles/FeaturedUsers.css";
-import Section from "../Layout/Section";
+import Section from "../Layout/Container";
 
 const FeaturedUsers: React.FC = () => {
   function createData(name: string, date: string, distance: number) {
@@ -19,7 +18,7 @@ const FeaturedUsers: React.FC = () => {
   return (
     <div className="featuredUsers">
       <Section>
-        <Table sx={{backgroundColor: "white"}}>
+        <Table sx={{ backgroundColor: "white" }}>
           <thead>
             <tr>
               <th style={{ width: "40%" }}>Name</th>

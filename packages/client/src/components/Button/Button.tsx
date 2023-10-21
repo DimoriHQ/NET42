@@ -23,7 +23,7 @@ const Button: React.FC<
       formNoValidate
       type={type}
       className={cn(
-        "select-none cursor-pointer rounded-3xl text-[20px] font-bold bg-white shadow-lg",
+        "select-none cursor-pointer text-[16px] font-bold bg-[#BE513F] text-white hover:bg-[#903d2f] transition",
         disabled ? "bg-gray-500" : "",
         {
           "py-2 px-5": size === "normal",

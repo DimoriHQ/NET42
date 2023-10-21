@@ -1,4 +1,5 @@
 import dayjs from "dayjs";
+import { WithId } from "mongodb";
 
 export type Track = { track: number; image: string };
 
@@ -27,7 +28,7 @@ export const rawToCampaignType = (raw: RawCampaignType): CampaignType => {
 
     nftId,
 
-    status,
+    claim,
     joined,
   } = raw;
 
@@ -54,7 +55,7 @@ export const rawToCampaignType = (raw: RawCampaignType): CampaignType => {
 
     nftId,
 
-    status: status || "available",
+    claim,
     joined: joined || 0,
   };
 
@@ -116,8 +117,9 @@ export type CampaignType = {
   ParticipantState;
 
 export enum UserStateStatus {
+  NOT_START_YET = "not_start_yet",
   AVAILABLE = "available",
-  REGISTERED = "registerd",
+  REGISTERED = "registered",
   ENDED = "ended",
   CLAIMABLE = "claimable",
   UNFINISHED = "unfinished",
@@ -125,7 +127,7 @@ export enum UserStateStatus {
 }
 
 export type UserState = {
-  status: UserStateStatus | string;
+  claim: ClaimableType;
 };
 
 export type ParticipantState = {
@@ -152,12 +154,19 @@ export const emptyCampaign: CampaignType = {
   standardCode: "",
   tracks: [],
 
-  status: "available",
+  claim: {
+    status: UserStateStatus.AVAILABLE,
+    nfts: [],
+    claimedNfts: [],
+    registeredNft: undefined,
+    registeredNftNotClaimed: undefined,
+  },
   joined: 0,
 };
 
 export type CampaignReducer = {
   isLoading: boolean;
+  isInit: boolean;
 
   campaigns: CampaignType[];
   claimable: CampaignType[];
@@ -165,6 +174,7 @@ export type CampaignReducer = {
 
 export const defaultCampaignReducer: CampaignReducer = {
   isLoading: false,
+  isInit: false,
 
   campaigns: [],
   claimable: [],
@@ -227,4 +237,13 @@ export type MintProof = {
     nft: NET42NftType;
   };
   proof: string;
+};
+
+export type ClaimableType = {
+  campaign?: WithId<CampaignType>[];
+  status: UserStateStatus;
+  nfts: WithId<NET42Base>[];
+  claimedNfts: WithId<NET42Base>[];
+  registeredNft?: WithId<NET42Base>;
+  registeredNftNotClaimed?: WithId<NET42Base>;
 };

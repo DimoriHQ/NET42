@@ -6,6 +6,7 @@ declare module "koa" {
     address: string;
     isAuth: boolean;
     isAdmin: boolean;
+    isStravaConnected: boolean;
     body?: any;
   }
 }

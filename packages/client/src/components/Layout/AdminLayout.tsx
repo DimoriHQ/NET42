@@ -16,7 +16,7 @@ const AdminLayout: React.FC = () => {
   }, [auth]);
 
   return (
-    <div className="mx-auto px-6 container flex flex-col gap-3 min-h-screen">
+    <div className="mx-auto px-6 container flex flex-col justify-between gap-3 min-h-screen">
       <Header />
       <Outlet />
       <Footer />

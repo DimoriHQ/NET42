@@ -8,12 +8,7 @@ dayjs.extend(relativeTime);
 dayjs.extend(localizedFormat);
 
 const Campaigns: React.FC = () => {
-  return (
-    <div>
-      campaigns
-      <Campaign />
-    </div>
-  );
+  return <Campaign />;
 };
 
 export default Campaigns;

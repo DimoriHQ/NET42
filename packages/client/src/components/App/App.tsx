@@ -1,16 +1,15 @@
 import { InjectedConnector } from "@wagmi/core";
-import { mantleTestnet, polygonMumbai, scrollSepolia } from "@wagmi/core/chains";
+import { mantleTestnet, polygonMumbai } from "@wagmi/core/chains";
 import { Web3AuthConnector } from "@web3auth/web3auth-wagmi-connector";
 import { Provider } from "react-redux";
-import { useEffectOnce } from "usehooks-ts";
+import { defineChain } from "viem";
 import { WagmiConfig, configureChains, createConfig } from "wagmi";
 import { alchemyProvider } from "wagmi/providers/alchemy";
 import { publicProvider } from "wagmi/providers/public";
 import { useAppSelector } from "../../app/hooks";
 import { store } from "../../app/store";
 import { selectAuth } from "../../features/authentication/reducer";
-import { web3AuthModalPack } from "../../features/authentication/types";
-import { modalConfig, openLoginAdapter, safeLoginParams, safeScrollOptions } from "../../services/safe";
+import { safeLoginParams } from "../../services/safe";
 import "../../styles/main.scss";
 import PopupProvider from "../Popup/PopupProvider";
 import Router from "../Router/Router";
@@ -23,14 +22,44 @@ import Toast from "../Toast/Toast";
 // https://www.rainbowkit.com/docs/authentication
 // https://wagmi.sh/examples/sign-in-with-ethereu
 
-const testnetChains = [scrollSepolia, polygonMumbai, mantleTestnet];
+const scroll = defineChain({
+  id: 534_351,
+  name: "Scroll Sepolia",
+  network: "scroll-sepolia",
+  nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+  rpcUrls: {
+    default: {
+      http: ["https://sepolia-rpc.scroll.io"],
+      webSocket: ["wss://prettiest-warmhearted-telescope.scroll-testnet.discover.quiknode.pro/6cf890e6652e57165ce1f693f607fd19c4cc3c23/"],
+    },
+    public: {
+      http: ["https://sepolia-rpc.scroll.io"],
+      webSocket: ["wss://prettiest-warmhearted-telescope.scroll-testnet.discover.quiknode.pro/6cf890e6652e57165ce1f693f607fd19c4cc3c23/"],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: "scrollscan",
+      url: "https://sepolia.scrollscan.dev",
+    },
+    blockscout: {
+      name: "Blockscout",
+      url: "https://sepolia-blockscout.scroll.io",
+    },
+  },
+  contracts: {
+    multicall3: {
+      address: "0xca11bde05977b3631167028862be2a173976ca11",
+      blockCreated: 9473,
+    },
+  },
+  testnet: true,
+});
+
+const testnetChains = [scroll as any, polygonMumbai, mantleTestnet];
 
 const App: React.FC = () => {
   const auth = useAppSelector(selectAuth);
-
-  useEffectOnce(() => {
-    web3AuthModalPack.init({ options: safeScrollOptions, adapters: [openLoginAdapter], modalConfig });
-  });
 
   const { chains, publicClient, webSocketPublicClient } = configureChains(testnetChains, [
     alchemyProvider({

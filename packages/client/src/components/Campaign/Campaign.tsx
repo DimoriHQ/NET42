@@ -8,23 +8,43 @@ import Typography from "@mui/joy/Typography";
 import Step from "@mui/material/Step";
 import StepLabel from "@mui/material/StepLabel";
 import Stepper from "@mui/material/Stepper";
+import { Exit } from "@styled-icons/boxicons-regular";
+import { TravelExplore } from "@styled-icons/material-outlined";
 import dayjs from "dayjs";
 import { ethers } from "ethers";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { useAccount, useContractWrite } from "wagmi";
+import { useAccount, useContractReads, useContractWrite, useWaitForTransaction } from "wagmi";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import config from "../../config";
 import { selectAuth, setProvider, verify } from "../../features/authentication/reducer";
 import { registerCampaign } from "../../features/campaigns/reducer";
 import { CampaignType } from "../../features/campaigns/types";
+import { sleep } from "../../services/utils/sleep";
+import Popup from "../Popup/Popup";
+import { usePopups } from "../Popup/PopupProvider";
 import { setToast } from "../Toast/toastReducer";
+
+export const DetailContainer: React.FC<{
+  title: string;
+  data: any;
+  className?: string;
+}> = ({ title, data, className }) => {
+  return (
+    <div className={`${className} flex-1 flex flex-col justify-center space-y-1 items-center py-2`}>
+      <div className="w-full text-center mb-4">{title}</div>
+      <p className="text-[54px] leading-[20px] font-bold">{data}</p>
+    </div>
+  );
+};
 
 const Campaign: React.FC<{ campaign: CampaignType }> = ({ campaign }) => {
   const { address, isConnected } = useAccount();
   const auth = useAppSelector(selectAuth);
   const dispatch = useAppDispatch();
-  const [loading, setLoading] = useState(false);
+  const [minting, setMinting] = useState(false);
+  const [tokenId, setTokenId] = useState(-1);
+  const { addPopup, removeAll } = usePopups();
 
   const marks = [
     {
@@ -38,19 +58,39 @@ const Campaign: React.FC<{ campaign: CampaignType }> = ({ campaign }) => {
   ];
 
   const {
-    data,
+    data: contract,
+    isError: contractError,
+    isLoading: contractLoading,
+    isFetched: contractFetched,
+  } = useContractReads({
+    watch: true,
+    contracts: [
+      {
+        ...config.contract,
+        functionName: "totalSupply",
+      },
+      {
+        ...config.contract,
+        functionName: "tokenURI",
+        args: [tokenId],
+      },
+    ],
+  });
+
+  const tokenURI = (contract?.[1].result || "") as string;
+
+  const {
+    data: mintData,
     write,
-    status,
+    status: mintStatus,
     isLoading: mintLoading,
   } = useContractWrite({
     address: config.contractAddress,
     abi: config.contract.abi,
     functionName: "safeMint",
-    onSuccess: () => {
-      setLoading(false);
-    },
     onError(error) {
-      setLoading(false);
+      setMinting(false);
+
       dispatch(
         setToast({
           show: true,
@@ -62,8 +102,107 @@ const Campaign: React.FC<{ campaign: CampaignType }> = ({ campaign }) => {
     },
   });
 
+  const {
+    data: txData,
+    isError: txError,
+    isLoading: txLoading,
+    isFetched,
+  } = useWaitForTransaction({
+    confirmations: 1,
+    hash: mintData?.hash,
+  });
+
+  const mintSuccess = mintStatus === "success" && !!txData;
+  const loading = minting || mintLoading || txLoading;
+  const valid = !loading && address;
+  const hasError = contractError || txError;
+
+  useEffect(() => {
+    if (mintSuccess && isFetched) {
+      const nftId = parseInt(txData.logs[0].topics[3] as any, 16);
+      setTokenId(nftId);
+    }
+  }, [mintSuccess, isFetched, txData]);
+
+  useEffect(() => {
+    if (tokenURI && tokenId != -1) {
+      dispatch(
+        setToast({
+          show: true,
+          title: "",
+          message: `Submit transaction success!`,
+          type: "success",
+        }),
+      );
+
+      const fetchMetadata = () => {
+        fetch(tokenURI)
+          .then(async (res: any) => {
+            const metadata = await res.json();
+
+            setTimeout(() => {
+              addPopup({
+                Component: () => {
+                  return (
+                    <Popup className="bg-white">
+                      <h2 className="text-center font-bold text-[24px] leading-[28px] ">Congratulation!</h2>
+                      <div className="px-3 mb-2 mt-8 border-b-[1px] border-gray-300">
+                        <div className="flex flex-col justify-center items-center space-y-2">
+                          <img className="w-[400px] h-[400px] border border-none rounded-2xl" src={metadata.image} alt="nftimg" />
+                          <div className="text-[18px] font-semibold">{metadata.name}</div>
+                        </div>
+                        <div className="flex justify-center items-center space-x-2 !text-gray-900 mx-16 my-4 p-2">
+                          <DetailContainer className="font-bold" title="Level" data={metadata.attributes[0].value} />
+                          <DetailContainer className="font-bold" title="Point" data={metadata.attributes[1].value} />
+                          <DetailContainer className="font-bold" title="Day" data={metadata.attributes[2].value} />
+                        </div>
+                      </div>
+                      <div className="w-full flex justify-between items-center !text-white">
+                        <button
+                          onClick={() => {
+                            window.open(`${config.explorerURL}/${mintData?.hash}`, "_blank", "noopener,noreferrer");
+                          }}
+                          className="flex-1 bg-[#8d1cfe] max-w-[220px] text-[16px] leading-[32px] font-bold px-6 py-2 border border-none rounded-3xl flex space-x-2 justify-center items-center"
+                        >
+                          <p>View on explorer</p>
+                          <TravelExplore size={20} />
+                        </button>
+                        <button
+                          onClick={() => removeAll()}
+                          className="flex-1 bg-[#8d1cfe] max-w-[200px] text-[16px] leading-[32px] font-bold px-6 py-2 border border-none rounded-3xl flex space-x-2 justify-center items-center"
+                        >
+                          <p>Go to campaign</p>
+                          <Exit size={20} />
+                        </button>
+                      </div>
+                    </Popup>
+                  );
+                },
+                removeCallback: () => {
+                  setMinting(false);
+                  setTokenId(-1);
+                },
+              });
+
+              setMinting(false);
+            }, 3000);
+
+            return;
+          })
+          .catch(() => {
+            sleep(2000).then(() => {
+              fetchMetadata();
+            });
+          });
+      };
+
+      fetchMetadata();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [addPopup, dispatch, removeAll, tokenURI]);
+
   const CTAButton = () => {
-    if (!isConnected) {
+    if (!isConnected || !address) {
       return (
         <Button
           onClick={async () => {
@@ -78,17 +217,19 @@ const Campaign: React.FC<{ campaign: CampaignType }> = ({ campaign }) => {
       );
     }
 
-    switch (campaign.status) {
+    switch (campaign?.claim?.status) {
       case "available":
         return (
           <Button
             onClick={async () => {
-              setLoading(true);
+              setMinting(true);
+
+              if (!valid) return;
 
               try {
                 dispatch(
                   registerCampaign({
-                    address: address!,
+                    isConnected,
                     id: campaign._id!,
                     callback: ({ data }) => {
                       write({
@@ -99,14 +240,16 @@ const Campaign: React.FC<{ campaign: CampaignType }> = ({ campaign }) => {
                 );
               } catch (error) {
                 console.error(error);
-                setLoading(false);
+                setMinting(false);
               }
             }}
-            loading={loading}
+            loading={minting}
           >
             Register
           </Button>
         );
+      case "not_start_yet":
+        return <Button disabled>Not Start Yet</Button>;
       case "ended":
         return <Button disabled>Ended</Button>;
       case "finished":
@@ -121,7 +264,7 @@ const Campaign: React.FC<{ campaign: CampaignType }> = ({ campaign }) => {
             onClick={() => {
               //
             }}
-            loading={loading}
+            loading={minting}
           >
             Claimable
           </Button>
@@ -143,15 +286,15 @@ const Campaign: React.FC<{ campaign: CampaignType }> = ({ campaign }) => {
       <CardOverflow>
         <Link to={`/campaign/${campaign._id!}`}>
           <AspectRatio ratio="2">
-            <img src={campaign.banner} srcSet={`${campaign.banner} 2x`} loading="lazy" alt="" />
+            <img src={campaign.image} srcSet={`${campaign.image} 2x`} loading="lazy" alt="" />
           </AspectRatio>
         </Link>
       </CardOverflow>
 
       <CardContent>
         <Link to={`/campaign/${campaign._id!}`}>
-          <Typography level="title-md">{campaign.name}</Typography>
-          <Typography level="body-sm">{campaign.description}</Typography>
+          <div className="mb-2 text-[22px]">{campaign.name}</div>
+          <div className="text-[14px] truncate">{campaign.description}</div>
         </Link>
       </CardContent>
 
@@ -184,24 +327,6 @@ const Campaign: React.FC<{ campaign: CampaignType }> = ({ campaign }) => {
             ))}
           </Stepper>
         </CardContent>
-      </CardOverflow>
-      <CardOverflow>
-        <Link to={`/campaign/${campaign._id!}`}>
-          <div>Tracks</div>
-          <div className="my-4 mx-auto flex">
-            {campaign.tracks.map((track, index) => {
-              return (
-                <div key={index} className="">
-                  <div className="">
-                    {" "}
-                    <img className="block mx-auto" src={track.image} alt="" width={50} />
-                  </div>
-                  <div>{track.track} meters</div>
-                </div>
-              );
-            })}
-          </div>
-        </Link>
       </CardOverflow>
       <CardOverflow variant="soft" sx={{ bgcolor: "background.level1" }}>
         <CardContent>{CTAButton()}</CardContent>

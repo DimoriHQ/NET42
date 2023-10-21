@@ -1,29 +1,28 @@
-import React from "react";
-import { useEffectOnce } from "usehooks-ts";
+import React, { useEffect } from "react";
 import { useAccount } from "wagmi";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { getCampaigns, selectCampaign } from "../../features/campaigns/reducer";
-import Section from "../Layout/Section";
+import Container from "../Layout/Container";
 import Campaign from "./Campaign";
 
 const Campaigns: React.FC = () => {
   const campaign = useAppSelector(selectCampaign);
   const dispatch = useAppDispatch();
-  const { address } = useAccount();
+  const { isConnected } = useAccount();
 
-  useEffectOnce(() => {
-    dispatch(getCampaigns({ address: address! }));
-  });
+  useEffect(() => {
+    dispatch(getCampaigns({ isConnected }));
+  }, []);
 
   return (
-    <section className="bg-gray-200 p-6">
-      <Section>
-        <div className="grid grid-cols-3 gap-6">
+    <section className="bg-[#F6F6F6] px-6 py-[100px]">
+      <Container>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {campaign.campaigns.map((item) => (
             <Campaign campaign={item} key={item._id} />
           ))}
         </div>
-      </Section>
+      </Container>
     </section>
   );
 };

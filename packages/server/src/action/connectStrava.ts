@@ -1,22 +1,63 @@
-import { ObjectId } from "mongodb";
 import { KoaContext } from "../global";
-import { getCampaign } from "../models/campaign";
-import { checkpoints } from "../models/checkpointsTrack";
+import { createStravaRequest, updateStravaConnect } from "../models/user";
+import { errorResponse, successResponse } from "../services/response";
+import axios from "axios";
+import logger from "../utils/log";
+import { STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET, STRAVA_REDIRECT, STRAVA_UI_REDIRECT } from "../config";
 
-// need to refactor
-// import { authorize, getDistance, getToken, getTrackingData } from "../models/stravaTracking";
+export const connectStravaRequest = async (ctx: KoaContext) => {
+  if (!ctx.isAuth) {
+    ctx.status = 400;
+    ctx.body = errorResponse("need auth", 400);
+    return;
+  }
 
-// let total_distance: number; // need to store it on somewhere for refresh page
-// let trackingData; // need to store it on somewhere for refresh page
-// let access_token: string; // need to store it on somewhere for refresh page
+  const stravaRequest = await createStravaRequest(ctx.address);
 
-// export const authorizeStrava = async (ctx: KoaContext) => {
-//   var response_link = authorize(ctx.request.URL);
-//   ctx.redirect(response_link);
-// };
+  ctx.status = 200;
+  ctx.body = successResponse(stravaRequest);
+};
 
-// export const trackingDataStrava = async (ctx: KoaContext) => {
-//   let code: string = ctx.request.query.code.toString();
+export const connectStrava = async (ctx: KoaContext) => {
+  const code = ctx.query["code"] as string;
+  const requestCode = ctx.query["requestCode"] as string;
+
+  const data = await handleStravaCode(code);
+
+  console.log(data);
+
+  await updateStravaConnect(requestCode, data);
+
+  ctx.body = successResponse("success");
+  ctx.redirect(STRAVA_UI_REDIRECT);
+};
+
+export const handleStravaCode = async (code: string) => {
+  try {
+    const { data } = await axios.post(
+      "https://www.strava.com/oauth/token",
+      new URLSearchParams({
+        client_id: STRAVA_CLIENT_ID,
+        client_secret: STRAVA_CLIENT_SECRET,
+        code,
+        grant_type: "authorization_code",
+        redirect_uri: STRAVA_REDIRECT,
+        scope: "activity:read_all",
+      }).toString(),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      },
+    );
+
+    return data;
+  } catch (error) {
+    logger.error({ error });
+  }
+};
+
+// export const trackingDataStrava = async (ctx: KoaContext) => {//   let code: string = ctx.request.query.code.toString();
 //   access_token = await getToken(code);
 
 //   let rawCampaignId: string = ctx.params.campaignId.toString();
