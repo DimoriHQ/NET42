@@ -1,5 +1,5 @@
 import { KoaContext } from "../global";
-import { createStravaRequest, updateStravaConnect } from "../models/user";
+import { createStravaRequest, updateStravaConnect, userDisconnectStrava, userGetStravaProfile } from "../models/user";
 import { errorResponse, successResponse } from "../services/response";
 import axios from "axios";
 import logger from "../utils/log";
@@ -55,6 +55,32 @@ export const handleStravaCode = async (code: string) => {
   } catch (error) {
     logger.error({ error });
   }
+};
+
+export const disconnectStrava = async (ctx: KoaContext) => {
+  if (!ctx.isAuth) {
+    ctx.status = 400;
+    ctx.body = errorResponse("need auth", 400);
+    return;
+  }
+
+  await userDisconnectStrava(ctx.address);
+
+  ctx.status = 200;
+  ctx.body = successResponse("success");
+};
+
+export const getStravaProfile = async (ctx: KoaContext) => {
+  if (!ctx.isAuth) {
+    ctx.status = 400;
+    ctx.body = errorResponse("need auth", 400);
+    return;
+  }
+
+  const data = await userGetStravaProfile(ctx.address);
+
+  ctx.status = 200;
+  ctx.body = successResponse(data);
 };
 
 // export const trackingDataStrava = async (ctx: KoaContext) => {//   let code: string = ctx.request.query.code.toString();

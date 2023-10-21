@@ -3,6 +3,8 @@ import koaLogger from "koa-pino-logger";
 import Router from "@koa/router";
 import helmet from "koa-helmet";
 import bodyParser from "koa-bodyparser";
+import multer from "@koa/multer";
+import { isProduction } from "./config";
 import logger from "./utils/log";
 import { client } from "./db";
 import { listenerInit } from "./listener/mintNftListener";
@@ -14,27 +16,22 @@ import { dateRangeMiddleware } from "./middlewares/dateRange";
 import { paginationMiddleware } from "./middlewares/page";
 import { limiter } from "./middlewares/limiter";
 import { notFound } from "./middlewares/notFound";
+import { strava } from "./middlewares/strava";
+import { auth } from "./middlewares/auth";
+import { admin } from "./middlewares/admin";
 import { nftCollInit } from "./models/net42";
+import { campaignCollInit } from "./models/campaign";
+import { waitlistCollInit } from "./models/waitlist";
+import { userCollInit } from "./models/user";
 import { index } from "./action/index";
 import saveWaitlist from "./action/saveWailist";
 import { getClaimable } from "./action/getClaimable";
-import { auth } from "./middlewares/auth";
-import { admin } from "./middlewares/admin";
 import { getCampaigns } from "./action/getCampaigns";
 import { createCampaign } from "./action/createCampaign";
-import { editCampaign } from "./action/editCampaign";
-import { usersTrackCampaign } from "./action/usersTrackCampaign";
-import { claim } from "./action/claim";
-import { profile } from "./action/profile";
+import { profile } from "./action/getUserNfts";
 import { verify } from "./action/verify";
-import { STRAVA_UI_REDIRECT, isProduction } from "./config";
-import multer from "@koa/multer";
-import { campaignCollInit } from "./models/campaign";
-import { waitlistCollInit } from "./models/waitlist";
 import { registerCampaign } from "./action/registerCampaign";
-import { userCollInit } from "./models/user";
-import { connectStrava, connectStravaRequest } from "./action/connectStrava";
-import { strava } from "./middlewares/strava";
+import { connectStrava, connectStravaRequest, disconnectStrava, getStravaProfile } from "./action/strava";
 
 // create app
 const app = new Koa();
@@ -105,18 +102,17 @@ const upload = multer();
   );
 
   router.get("/campaign/:id", getCampaigns);
-  router.put("/campaign/:id", editCampaign);
-  router.put("/campaign/:id/users", usersTrackCampaign);
   router.post("/campaign/:id/register", registerCampaign);
 
   router.get("/claimable", getClaimable);
-  router.get("/campaign/claim/:id", claim);
 
   router.get("/profile", profile);
   router.post("/nft/update-owner/request", profile);
 
   router.post("/strava/request", connectStravaRequest);
   router.get("/strava/callback", connectStrava);
+  router.post("/strava/disconnect", disconnectStrava);
+  router.get("/strava/profile", getStravaProfile);
 
   app.use(router.routes());
   app.use(router.allowedMethods());

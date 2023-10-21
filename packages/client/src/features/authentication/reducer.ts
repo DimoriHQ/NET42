@@ -88,6 +88,71 @@ export const connectStrava = createAsyncThunk(
   },
 );
 
+export const disconnectStrava = createAsyncThunk(
+  "auth/disconnectStrava",
+  async ({ isConnected, callback }: { isConnected: boolean; callback: () => void }, { getState, dispatch }) => {
+    let token = "";
+    let address = "";
+    if (isConnected) {
+      const data = await getStateToken(getState());
+      token = data.token;
+      address = data.address;
+    } else {
+      return;
+    }
+
+    try {
+      const { data } = await axios.post<Response<string>>(`${config.apiURL}/v1/strava/disconnect?address=${address}`, undefined, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (data.status) {
+        callback();
+        return;
+      }
+
+      dispatch(setToast({ show: true, title: "", message: data.message.text, type: "error" }));
+
+      throw new Error(data.message.text);
+    } catch (error) {
+      console.error(error);
+      return [];
+    }
+  },
+);
+
+export const getStravaProfile = createAsyncThunk("auth/getStravaProfile", async ({ isConnected }: { isConnected: boolean }, { getState, dispatch }) => {
+  let token = "";
+  let address = "";
+  if (isConnected) {
+    const data = await getStateToken(getState());
+    token = data.token;
+    address = data.address;
+  } else {
+    return;
+  }
+
+  try {
+    const { data } = await axios.get<Response<string>>(`${config.apiURL}/v1/strava/profile?address=${address}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (data.status) {
+      return data.data;
+    }
+
+    dispatch(setToast({ show: true, title: "", message: data.message.text, type: "error" }));
+
+    throw new Error(data.message.text);
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+});
+
 const authReducer = createReducer(defaultAuthReducer, (builder) => {
   return builder
     .addCase(setProvider, (state, action) => {
@@ -110,6 +175,7 @@ const authReducer = createReducer(defaultAuthReducer, (builder) => {
       state.isVerify = false;
       state.isStravaConnected = false;
       state.isAdmin = false;
+      state.stravaProfile = undefined;
     })
     .addCase(clearAuth, (state) => {
       state.isVerifyInit = true;
@@ -118,7 +184,11 @@ const authReducer = createReducer(defaultAuthReducer, (builder) => {
       state.isAdmin = false;
       state.isStravaConnected = false;
       state.token = "";
+      state.stravaProfile = undefined;
       tokenStorage.set("");
+    })
+    .addCase(getStravaProfile.fulfilled, (state, action) => {
+      state.stravaProfile = action.payload as any;
     });
 });
 

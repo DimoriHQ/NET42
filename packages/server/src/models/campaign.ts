@@ -35,7 +35,7 @@ export type Track = { track: number; image: string };
 export enum UserStateStatus {
   NOT_START_YET = "not_start_yet",
   AVAILABLE = "available",
-  REGISTERED = "registerd",
+  REGISTERED = "registered",
   ENDED = "ended",
   CLAIMABLE = "claimable",
   UNFINISHED = "unfinished",

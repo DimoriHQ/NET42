@@ -4,7 +4,7 @@ import logger from "../utils/log";
 import { DB__NET42 } from "../config";
 import { createDBCollName } from "../db/createDBCollName";
 import { CampaignBaseType, createNet42Medal, getCampaignsById } from "./campaign";
-import { NET42Base, NET42NftType, createNft, createNftProof, isRegisterdNftExist, net42BaseToftType } from "./net42";
+import { NET42Base, NET42NftType, createNft, createNftProof, isRegisteredNftExist, net42BaseToftType } from "./net42";
 import randomstring from "randomstring";
 
 export type User = {
@@ -96,7 +96,7 @@ export const userJoinCampaign = async (
 
   await userColl.updateOne({ address }, { $addToSet: { joined: campaign._id } });
 
-  let baseNft = await isRegisterdNftExist(campaign, address);
+  let baseNft = await isRegisteredNftExist(campaign, address);
   let nft: NET42NftType;
   if (baseNft) {
     nft = net42BaseToftType(campaign, baseNft);
@@ -133,10 +133,20 @@ export const updateStravaConnect = async (requestCode: string, stravaOAuth2: Str
   await userColl.updateOne({ stravaRequest: requestCode }, { $set: { stravaOAuth2 } });
 };
 
+export const userDisconnectStrava = async (address: string) => {
+  await userColl.updateOne({ address }, { $set: { stravaOAuth2: null } });
+};
+
 export const isStravaConnected = async (address: string) => {
   const user = await getUser(address);
 
   return !!user.stravaOAuth2;
+};
+
+export const userGetStravaProfile = async (address: string) => {
+  const user = await getUser(address);
+
+  return user.stravaOAuth2?.athlete;
 };
 
 // export const getTrackingData = async (access_token: string, registertime: number, endtime: number, page: number, per_page: number) => {

@@ -12,9 +12,11 @@ const Router: React.FC = () => {
         <Route path="/" element={<RootLayout />}>
           <Route path="/" element={<Layout />}>
             <Route path="/" element={<LazyHome />} />
-            <Route path="/profile/:id" element={<LazyProfile />} />
             <Route path="/campaigns" element={<LazyCampaigns />} />
             <Route path="/campaign/:id" element={<LazyCampaign />} />
+            {/* <Route path="/profile" element={<UserLayout />}> */}
+            <Route path="/profile/:address" element={<LazyProfile />} />
+            {/* </Route> */}
           </Route>
           <Route path="/admin" element={<AdminLayout />}>
             <Route path="/admin" element={<LazyAdmin />} />

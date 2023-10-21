@@ -16,11 +16,10 @@ import Container from "../Layout/Container";
 import Popup from "../Popup/Popup";
 import { usePopups } from "../Popup/PopupProvider";
 import { setToast } from "../Toast/toastReducer";
-import { DetailContainer } from "./Campaign";
 import Campaigns from "./Campaigns";
 
 const CampaignDetail: React.FC = () => {
-  let { id } = useParams();
+  const { id } = useParams();
   const { address, isConnected } = useAccount();
 
   const dispatch = useAppDispatch();
@@ -38,22 +37,14 @@ const CampaignDetail: React.FC = () => {
     dispatch(getCampaigns({ isConnected }));
   });
 
-  if (!campaign.isInit) {
-    return null;
-  }
-
-  if (!current) {
-    return "Not Found 404";
-  }
-
   const marks = [
     {
       value: 0,
-      label: `${current.startTime.format("MMM DD, YYYY HH:mmA")}`,
+      label: `${current?.startTime.format("MMM DD, YYYY HH:mmA")}`,
     },
     {
       value: 100,
-      label: current.hasEndTime ? (current.endTime ? `${current.endTime.format("MMM DD, YYYY HH:mmA")}` : "∞") : "∞",
+      label: current?.hasEndTime ? (current?.endTime ? `${current.endTime.format("MMM DD, YYYY HH:mmA")}` : "∞") : "∞",
     },
   ];
 
@@ -148,15 +139,10 @@ const CampaignDetail: React.FC = () => {
                   return (
                     <Popup className="bg-white">
                       <h2 className="text-center font-bold text-[24px] leading-[28px] ">Congratulation!</h2>
-                      <div className="px-3 mb-2 mt-8 border-b-[1px] border-gray-300">
+                      <div className="px-3 mb-20 mt-12">
                         <div className="flex flex-col justify-center items-center space-y-2">
                           <img className="w-[400px] h-[400px] border border-none rounded-2xl" src={metadata.image} alt="nftimg" />
                           <div className="text-[18px] font-semibold">{metadata.name}</div>
-                        </div>
-                        <div className="flex justify-center items-center space-x-2 !text-gray-900 mx-16 my-4 p-2">
-                          <DetailContainer className="font-bold" title="Level" data={metadata.attributes[0].value} />
-                          <DetailContainer className="font-bold" title="Point" data={metadata.attributes[1].value} />
-                          <DetailContainer className="font-bold" title="Day" data={metadata.attributes[2].value} />
                         </div>
                       </div>
                       <div className="w-full flex justify-between items-center !text-white">
@@ -187,6 +173,10 @@ const CampaignDetail: React.FC = () => {
               });
 
               setMinting(false);
+
+              setTimeout(() => {
+                dispatch(getCampaigns({ isConnected }));
+              }, 2000);
             }, 3000);
 
             return;
@@ -214,6 +204,7 @@ const CampaignDetail: React.FC = () => {
       case "available":
         return (
           <Button
+            size="lg"
             onClick={async () => {
               setMinting(true);
 
@@ -242,18 +233,39 @@ const CampaignDetail: React.FC = () => {
           </Button>
         );
       case "not_start_yet":
-        return <Button disabled>Not Start Yet</Button>;
+        return (
+          <Button size="lg" disabled>
+            Not Start Yet
+          </Button>
+        );
       case "ended":
-        return <Button disabled>Ended</Button>;
+        return (
+          <Button size="lg" disabled>
+            Ended
+          </Button>
+        );
       case "finished":
-        return <Button disabled>Unfinished</Button>;
+        return (
+          <Button size="lg" disabled>
+            Unfinished
+          </Button>
+        );
       case "unfinished":
-        return <Button disabled>Unfinished</Button>;
+        return (
+          <Button size="lg" disabled>
+            Unfinished
+          </Button>
+        );
       case "registered":
-        return <Button disabled>Registered</Button>;
+        return (
+          <Button size="lg" disabled>
+            Registered
+          </Button>
+        );
       case "claimable":
         return (
           <Button
+            size="lg"
             onClick={() => {
               //
             }}
@@ -267,6 +279,14 @@ const CampaignDetail: React.FC = () => {
         break;
     }
   };
+
+  if (!campaign.isInit) {
+    return null;
+  }
+
+  if (!current) {
+    return "Not Found 404";
+  }
 
   return (
     <>
@@ -309,7 +329,7 @@ const CampaignDetail: React.FC = () => {
       </section>
       <section className="bg-[#F6F6F6] px-6 py-[56px]">
         <Container>
-          <div className="text-[26px] font-bold mb-6">Tracks list</div>
+          <div className="text-[26px] font-bold mb-6">Tracks</div>
 
           <div className="grid grid-cols-3">
             {current.tracks.map((item) => (

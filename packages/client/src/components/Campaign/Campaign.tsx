@@ -18,7 +18,7 @@ import { useAccount, useContractReads, useContractWrite, useWaitForTransaction }
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import config from "../../config";
 import { selectAuth, setProvider, verify } from "../../features/authentication/reducer";
-import { registerCampaign } from "../../features/campaigns/reducer";
+import { getCampaigns, registerCampaign } from "../../features/campaigns/reducer";
 import { CampaignType } from "../../features/campaigns/types";
 import { sleep } from "../../services/utils/sleep";
 import Popup from "../Popup/Popup";
@@ -33,7 +33,7 @@ export const DetailContainer: React.FC<{
   return (
     <div className={`${className} flex-1 flex flex-col justify-center space-y-1 items-center py-2`}>
       <div className="w-full text-center mb-4">{title}</div>
-      <p className="text-[54px] leading-[20px] font-bold">{data}</p>
+      <p className="leading-[20px] font-bold">{data}</p>
     </div>
   );
 };
@@ -146,15 +146,10 @@ const Campaign: React.FC<{ campaign: CampaignType }> = ({ campaign }) => {
                   return (
                     <Popup className="bg-white">
                       <h2 className="text-center font-bold text-[24px] leading-[28px] ">Congratulation!</h2>
-                      <div className="px-3 mb-2 mt-8 border-b-[1px] border-gray-300">
+                      <div className="px-3 mb-20 mt-12">
                         <div className="flex flex-col justify-center items-center space-y-2">
                           <img className="w-[400px] h-[400px] border border-none rounded-2xl" src={metadata.image} alt="nftimg" />
                           <div className="text-[18px] font-semibold">{metadata.name}</div>
-                        </div>
-                        <div className="flex justify-center items-center space-x-2 !text-gray-900 mx-16 my-4 p-2">
-                          <DetailContainer className="font-bold" title="Level" data={metadata.attributes[0].value} />
-                          <DetailContainer className="font-bold" title="Point" data={metadata.attributes[1].value} />
-                          <DetailContainer className="font-bold" title="Day" data={metadata.attributes[2].value} />
                         </div>
                       </div>
                       <div className="w-full flex justify-between items-center !text-white">
@@ -185,6 +180,10 @@ const Campaign: React.FC<{ campaign: CampaignType }> = ({ campaign }) => {
               });
 
               setMinting(false);
+
+              setTimeout(() => {
+                dispatch(getCampaigns({ isConnected }));
+              }, 2000);
             }, 3000);
 
             return;
@@ -285,7 +284,7 @@ const Campaign: React.FC<{ campaign: CampaignType }> = ({ campaign }) => {
     <Card variant="outlined">
       <CardOverflow>
         <Link to={`/campaign/${campaign._id!}`}>
-          <AspectRatio ratio="2">
+          <AspectRatio ratio="1">
             <img src={campaign.image} srcSet={`${campaign.image} 2x`} loading="lazy" alt="" />
           </AspectRatio>
         </Link>

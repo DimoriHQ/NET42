@@ -53,7 +53,7 @@ export const net42BaseToftType = (campaign: CampaignBaseType, base: NET42Base): 
   const { participant, campaignId, createdDate, type, track, trackIndex } = base;
 
   const nft: NET42NftType = {
-    name: type ? `${campaign.name} - ${track}` : `${campaign.name} - Registerd Medal`,
+    name: type ? `${campaign.name} - ${track}` : `${campaign.name} - Registered Medal`,
     description: campaign.description,
     image: type === 0 ? campaign.registeredImage : campaign.tracks[trackIndex].image,
     attributes: [
@@ -100,7 +100,7 @@ export const isNftExist = async (id: ObjectId): Promise<NET42Document> => {
   return nft;
 };
 
-export const isRegisterdNftExist = async (campaign: WithId<CampaignBaseType>, owner: string): Promise<NET42Document> => {
+export const isRegisteredNftExist = async (campaign: WithId<CampaignBaseType>, owner: string): Promise<NET42Document> => {
   return await nftColl.findOne({ campaignId: campaign._id, participant: owner, type: 0 });
 };
 
@@ -139,7 +139,7 @@ export const getNft = async (id: string) => {
 };
 
 export const getNfts = async (campaign: CampaignBaseType, type: 0 | 1, participant: string, hasNft: boolean = false): Promise<WithId<NET42Base>[]> => {
-  logger.info({ thread: "db", collection: collName, action: "getNfts", participant });
+  logger.info({ thread: "db", collection: collName, action: "getNfts", participant, type, hasNft });
 
   const filter: { campaignId: ObjectId; type: 0 | 1; participant: string; nftId?: { $ne: null } } = { campaignId: campaign._id, type, participant };
 
@@ -239,18 +239,18 @@ export const getNftClaimable = async (participant: string): Promise<ClaimableTyp
         return { campaign, status: UserStateStatus.FINISHED, nfts, claimedNfts, registeredNft, registeredNftNotClaimed };
       }
 
-      if (campaign.tracks.length > 1) {
-        if (claimedNfts.length > 0) {
-          return { campaign, status: UserStateStatus.FINISHED, nfts, claimedNfts, registeredNft, registeredNftNotClaimed };
-        }
-      }
-
-      if (claimedNfts.length === 0) {
-        if (registeredNft) return { campaign, status: UserStateStatus.UNFINISHED, nfts, claimedNfts, registeredNft, registeredNftNotClaimed };
-      }
-
       if (campaign.hasEndTime) {
         if (dayjs(campaign.endTime).isBefore(current)) {
+          if (campaign.tracks.length > 1) {
+            if (claimedNfts.length > 0) {
+              return { campaign, status: UserStateStatus.FINISHED, nfts, claimedNfts, registeredNft, registeredNftNotClaimed };
+            }
+          }
+
+          if (claimedNfts.length === 0) {
+            if (registeredNft) return { campaign, status: UserStateStatus.UNFINISHED, nfts, claimedNfts, registeredNft, registeredNftNotClaimed };
+          }
+
           return { campaign, status: UserStateStatus.ENDED, nfts, claimedNfts, registeredNft, registeredNftNotClaimed };
         }
       }

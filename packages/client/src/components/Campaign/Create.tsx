@@ -37,7 +37,7 @@ const CreateCampaign: React.FC = () => {
   const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { address } = useAccount();
+  const { isConnected } = useAccount();
 
   const {
     control,
@@ -115,7 +115,7 @@ const CreateCampaign: React.FC = () => {
 
     dispatch(
       createCampaign({
-        address: address!,
+        isConnected,
 
         campaign: formData,
         callback: (last) => {
