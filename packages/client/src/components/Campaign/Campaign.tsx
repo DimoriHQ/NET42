@@ -252,21 +252,16 @@ const Campaign: React.FC<{ campaign: CampaignType }> = ({ campaign }) => {
       case "ended":
         return <Button disabled>Ended</Button>;
       case "finished":
-        return <Button disabled>Unfinished</Button>;
+        return <Button disabled>Finished</Button>;
       case "unfinished":
         return <Button disabled>Unfinished</Button>;
       case "registered":
         return <Button disabled>Registered</Button>;
       case "claimable":
         return (
-          <Button
-            onClick={() => {
-              //
-            }}
-            loading={minting}
-          >
-            Claimable
-          </Button>
+          <Link to={`/campaign/${campaign._id!}`} className="block">
+            <Button className="w-full">Claimable</Button>
+          </Link>
         );
 
       default:

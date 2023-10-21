@@ -160,6 +160,7 @@ export const emptyCampaign: CampaignType = {
     claimedNfts: [],
     registeredNft: undefined,
     registeredNftNotClaimed: undefined,
+    distance: 0,
   },
   joined: 0,
 };
@@ -169,11 +170,11 @@ export type CampaignReducer = {
   isInit: boolean;
 
   campaigns: CampaignType[];
-  claimable: CampaignType[];
+  claimable: ClaimableResponseType;
 };
 
 export const defaultCampaignReducer: CampaignReducer = {
-  isLoading: false,
+  isLoading: true,
   isInit: false,
 
   campaigns: [],
@@ -223,6 +224,9 @@ export type NET42Base = {
   metadata: string;
 
   nftId?: string;
+
+  data: NET42NftType;
+  proof: string;
 };
 
 export type User = {
@@ -246,4 +250,7 @@ export type ClaimableType = {
   claimedNfts: WithId<NET42Base>[];
   registeredNft?: WithId<NET42Base>;
   registeredNftNotClaimed?: WithId<NET42Base>;
+  distance: 0;
 };
+
+export type ClaimableResponseType = WithId<NET42Base>[];

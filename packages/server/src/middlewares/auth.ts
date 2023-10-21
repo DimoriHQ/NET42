@@ -37,6 +37,8 @@ export const auth = async (ctx: KoaContext, next: KoaNext) => {
         const newUser: User = {
           address,
           joined: [],
+          stravaLimit: {},
+          stravaCache: {},
         };
 
         const id = (await createUser(newUser)).insertedId;

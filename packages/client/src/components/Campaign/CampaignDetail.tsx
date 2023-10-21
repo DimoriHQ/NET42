@@ -3,15 +3,16 @@ import { Step, StepLabel, Stepper } from "@mui/material";
 import { Exit } from "@styled-icons/boxicons-regular";
 import { TravelExplore } from "@styled-icons/material-outlined";
 import React, { useEffect, useState } from "react";
+import { NumericFormat } from "react-number-format";
 import { useParams } from "react-router-dom";
 import { useEffectOnce } from "usehooks-ts";
 import { useAccount, useContractReads, useContractWrite, useWaitForTransaction } from "wagmi";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import config from "../../config";
-import { selectAuth } from "../../features/authentication/reducer";
 import { getCampaigns, registerCampaign, selectCampaign } from "../../features/campaigns/reducer";
 import { sleep } from "../../services/utils/sleep";
 import Connect from "../Button/Connect";
+import Claimable from "../Home/Claimable";
 import Container from "../Layout/Container";
 import Popup from "../Popup/Popup";
 import { usePopups } from "../Popup/PopupProvider";
@@ -26,8 +27,6 @@ const CampaignDetail: React.FC = () => {
 
   const campaign = useAppSelector(selectCampaign);
   const current = campaign.campaigns.find((item) => item._id === id);
-
-  const auth = useAppSelector(selectAuth);
 
   const [minting, setMinting] = useState(false);
   const [tokenId, setTokenId] = useState(-1);
@@ -48,7 +47,7 @@ const CampaignDetail: React.FC = () => {
     },
   ];
 
-  //  start
+  // start
 
   const {
     data: contract,
@@ -247,7 +246,7 @@ const CampaignDetail: React.FC = () => {
       case "finished":
         return (
           <Button size="lg" disabled>
-            Unfinished
+            Finished
           </Button>
         );
       case "unfinished":
@@ -263,17 +262,7 @@ const CampaignDetail: React.FC = () => {
           </Button>
         );
       case "claimable":
-        return (
-          <Button
-            size="lg"
-            onClick={() => {
-              //
-            }}
-            loading={minting}
-          >
-            Claimable
-          </Button>
-        );
+        return <span className="font-bold">Claimable</span>;
 
       default:
         break;
@@ -292,6 +281,7 @@ const CampaignDetail: React.FC = () => {
     <>
       <section className="">
         <Container>
+          <div className="text-[30px] text-center font-bold">{campaign.isLoading ? "Loading ..." : ""}</div>
           <div className="mx-auto w-full overflow-hidden rounded">
             <div className="relative z-20 h-[140px] sm:h-[160px] md:h-auto">
               <img src={current.banner} alt="profile cover" className="h-full w-full object-cover object-center" />
@@ -325,8 +315,16 @@ const CampaignDetail: React.FC = () => {
               ))}
             </Stepper>
           </div>
+          <div className="mb-6">
+            Curent process:{" "}
+            <span className="text-[19px]">
+              <NumericFormat value={Math.round(current.claim.distance)} thousandSeparator="," displayType="text" />
+            </span>{" "}
+            meters
+          </div>
         </Container>
       </section>
+      <Claimable showWithoutNfts={false} />
       <section className="bg-[#F6F6F6] px-6 py-[56px]">
         <Container>
           <div className="text-[26px] font-bold mb-6">Tracks</div>
@@ -347,6 +345,7 @@ const CampaignDetail: React.FC = () => {
           </div>
         </Container>
       </section>
+
       <section>
         <Container>
           <div className="mb-[16px] mt-[156px]">

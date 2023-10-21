@@ -3,10 +3,6 @@ import { createDBCollName } from "../db/createDBCollName";
 import { DB__NET42 } from "../config";
 import { dbCollection } from "../db/collection";
 import logger from "../utils/log";
-import { NET42Base, NET42NftType, net42BaseToftType } from "./net42";
-import dayjs from "dayjs";
-import { createFilePath, web3StorageClient } from "../services/web3Storage";
-import { File } from "@web-std/file";
 
 export type CampaignNftType = {
   name: string;
@@ -78,7 +74,7 @@ export type CampaignBaseType = {
 
 export type CampaignDocument = CampaignBaseType & Document;
 
-let campaignColl: Collection<CampaignBaseType>;
+export let campaignColl: Collection<CampaignBaseType>;
 const collName = createDBCollName("campaign");
 
 export const campaignCollInit = async () => {
@@ -140,42 +136,4 @@ export const getAllCampaigns = async (): Promise<CampaignDocument[]> => {
   }
 
   return campaigns;
-};
-
-export const createNet42Medal = async (
-  campaign: CampaignBaseType,
-  owner: string,
-  isTrack: boolean = false,
-  trackIndex: number = 0,
-): Promise<{
-  baseNft: NET42Base;
-  nft: NET42NftType;
-}> => {
-  const type = isTrack ? 1 : 0;
-  const track = isTrack ? campaign.tracks[trackIndex].track : 0;
-
-  const baseNft: NET42Base = {
-    owner,
-    campaignId: campaign._id,
-    participant: owner,
-    createdDate: dayjs().toDate(),
-    type,
-    trackIndex,
-    track,
-    metadata: "",
-  };
-
-  const nft = net42BaseToftType(campaign, baseNft);
-
-  const file = new File([JSON.stringify(nft)], "metadata.json", { type: "application/json" });
-  const cid = await web3StorageClient.put([file]);
-  const metadata = createFilePath(cid, file.name);
-
-  baseNft.metadata = metadata;
-
-  return { baseNft, nft };
-};
-
-export const getCampaignJoined = (campaign: CampaignBaseType) => {
-  return 0;
 };

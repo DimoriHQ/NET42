@@ -24,8 +24,6 @@ export const connectStrava = async (ctx: KoaContext) => {
 
   const data = await handleStravaCode(code);
 
-  console.log(data);
-
   await updateStravaConnect(requestCode, data);
 
   ctx.body = successResponse("success");

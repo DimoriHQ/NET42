@@ -5,7 +5,7 @@ import { setToast } from "../../components/Toast/toastReducer";
 import config from "../../config";
 import { getStateToken } from "../../services/getStateToken";
 import { Response } from "../../services/response";
-import { CampaignType, MintProof, RawCampaignType, defaultCampaignReducer, emptyCampaign, rawToCampaignType } from "./types";
+import { CampaignType, ClaimableResponseType, MintProof, RawCampaignType, defaultCampaignReducer, emptyCampaign, rawToCampaignType } from "./types";
 
 export const getCampaigns = createAsyncThunk("campaign/getCampaigns", async ({ isConnected }: { isConnected: boolean }, { dispatch, getState }): Promise<CampaignType[]> => {
   let token = "";
@@ -91,7 +91,7 @@ export const getCampaign = createAsyncThunk("campaign/getCampaign", async ({ cal
   }
 });
 
-export const getClaimable = createAsyncThunk("campaign/getClaimable", async ({ isConnected }: { isConnected: boolean }, { dispatch, getState }): Promise<CampaignType[]> => {
+export const getClaimable = createAsyncThunk("campaign/getClaimable", async ({ isConnected }: { isConnected: boolean }, { dispatch, getState }): Promise<ClaimableResponseType> => {
   let token = "";
   let address = "";
   if (isConnected) {
@@ -101,14 +101,15 @@ export const getClaimable = createAsyncThunk("campaign/getClaimable", async ({ i
   }
 
   try {
-    const { data } = await axios.get<Response<RawCampaignType[]>>(`${config.apiURL}/v1/claimable?address=${address || ""}`, {
+    const { data } = await axios.get<Response<ClaimableResponseType>>(`${config.apiURL}/v1/claimable?address=${address}`, {
       headers: {
         "Content-Type": "multipart/form-data",
         Authorization: `Bearer ${token}`,
       },
     });
+
     if (data.status) {
-      return data.data.map(rawToCampaignType);
+      return data.data;
     }
 
     dispatch(setToast({ show: true, title: "", message: data.message.text, type: "error" }));

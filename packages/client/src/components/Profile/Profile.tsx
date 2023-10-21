@@ -9,6 +9,7 @@ import config from "../../config";
 import { clearAuth, disconnectStrava, getStravaProfile, selectAuth, verify } from "../../features/authentication/reducer";
 import Button from "../Button/Button";
 import ConnectStrava from "../Button/ConnectStrava";
+import Campaigns from "../Campaign/Campaigns";
 import Container from "../Layout/Container";
 
 const Profile: React.FC = () => {
@@ -66,7 +67,7 @@ const Profile: React.FC = () => {
         const id = await publicClient.readContract({
           ...config.contract,
           functionName: "tokenOfOwnerByIndex",
-          args: [address, i],
+          args: [addressParam, i],
         });
 
         const tokenURI = await publicClient.readContract({
@@ -97,91 +98,101 @@ const Profile: React.FC = () => {
   }, [totalNfts]);
 
   return (
-    <section className="flex-1">
-      <Container>
-        <div>
-          <div className="text-[28px]">User profile</div>
+    <>
+      <section className="flex-1">
+        <Container>
           <div>
-            Address: <span className="text-[24px] font-bold"> {addressParam}</span>
+            <div className="text-[28px]">User profile</div>
+            <div>
+              Address: <span className="text-[24px] font-bold"> {addressParam}</span>
+              {isMe ? (
+                <div className="mt-1">
+                  <Button onClick={logout}>Logout</Button>
+                </div>
+              ) : (
+                ""
+              )}
+            </div>
+
             {isMe ? (
-              <div className="mt-1">
-                <Button onClick={logout}>Logout</Button>
+              <div className="mt-12">
+                <div className="flex items-center gap-2">
+                  <ConnectStrava />{" "}
+                  {auth.isStravaConnected ? (
+                    <div
+                      className="inline-flex items-center rounded-full bg-red-50 p-2 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10 cursor-pointer"
+                      onClick={() => {
+                        dispatch(
+                          disconnectStrava({
+                            isConnected,
+                            callback: () => {
+                              dispatch(verify({ address }));
+                            },
+                          }),
+                        );
+                      }}
+                    >
+                      <Close height={16} />
+                    </div>
+                  ) : (
+                    ""
+                  )}
+                </div>
+                <div>
+                  Strava username: <span className="font-bold">{auth.stravaProfile?.username}</span>
+                </div>
               </div>
             ) : (
               ""
             )}
           </div>
+          <div className="mb-[16px] mt-[60px]">
+            <div className="text-[32px] font-bold mb-4">NET42 NFTs</div>
 
-          {isMe ? (
-            <div className="mt-12">
-              <div className="flex items-center gap-2">
-                <ConnectStrava />{" "}
-                {auth.isStravaConnected ? (
-                  <div
-                    className="inline-flex items-center rounded-full bg-red-50 p-2 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10 cursor-pointer"
-                    onClick={() => {
-                      dispatch(
-                        disconnectStrava({
-                          isConnected,
-                          callback: () => {
-                            dispatch(verify({ address }));
-                          },
-                        }),
-                      );
-                    }}
-                  >
-                    <Close height={16} />
-                  </div>
-                ) : (
-                  ""
-                )}
-              </div>
-              <div>
-                Strava username: <span className="font-bold">{auth.stravaProfile?.username}</span>
-              </div>
-            </div>
-          ) : (
-            ""
-          )}
-        </div>
-        <div className="mb-[16px] mt-[60px]">
-          <div className="text-[32px] font-bold mb-4">NET42 NFTs</div>
-
-          {!totalNfts ? (
-            <div className="flex items-center justify-center min-h-[300px] bg-[#fefefe] rounded-lg border-dashed border-[2px] border-[#929292]">
-              {loading ? <div className="text-[24px] font-bold">Loading...</div> : <div className="text-[24px] font-bold">Have no nfts yet</div>}
-            </div>
-          ) : totalNfts ? (
-            !nfts.length ? (
+            {!totalNfts ? (
               <div className="flex items-center justify-center min-h-[300px] bg-[#fefefe] rounded-lg border-dashed border-[2px] border-[#929292]">
-                <div className="text-[24px] font-bold">Loading...</div>
+                {loading ? <div className="text-[24px] font-bold">Loading...</div> : <div className="text-[24px] font-bold">Have no nfts yet</div>}
               </div>
-            ) : (
-              <section className="bg-[#F6F6F6] px-6 py-[56px]">
-                <div className="grid grid-cols-3 lg:grid-cols-6 gap-6">
-                  {nfts.map((nft, index) => {
-                    return (
-                      <div key={index}>
-                        <div className="shadow-three mb-10 rounded-lg bg-white p-4 pb-6">
-                          <div className="mb-6 w-full overflow-hidden rounded-md">
-                            <img src={nft.image} alt="card image" className="h-full w-full object-cover object-center" />
-                          </div>
-                          <div className="px-[10px]">
-                            <h3 className="text-center font-bold text-[14px] truncate">{nft.name}</h3>
+            ) : totalNfts ? (
+              !nfts.length ? (
+                <div className="flex items-center justify-center min-h-[300px] bg-[#fefefe] rounded-lg border-dashed border-[2px] border-[#929292]">
+                  <div className="text-[24px] font-bold">Loading...</div>
+                </div>
+              ) : (
+                <section className="bg-[#F6F6F6] px-6 py-[56px]">
+                  <div className="grid grid-cols-3 lg:grid-cols-6 gap-6">
+                    {nfts.map((nft, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="shadow-three mb-10 rounded-lg bg-white p-4 pb-6">
+                            <div className="mb-6 w-full overflow-hidden rounded-md">
+                              <img src={nft.image} alt="card image" className="h-full w-full object-cover object-center" />
+                            </div>
+                            <div className="px-[10px]">
+                              <h3 className="text-center font-bold text-[14px] truncate">{nft.name}</h3>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </section>
-            )
-          ) : (
-            ""
-          )}
-        </div>
-      </Container>
-    </section>
+                      );
+                    })}
+                  </div>
+                </section>
+              )
+            ) : (
+              ""
+            )}
+          </div>
+        </Container>
+      </section>
+      <section>
+        <Container>
+          <div className="mb-[16px] mt-[50px]">
+            <div className="text-[32px] font-bold">View more running campaigns</div>
+          </div>
+        </Container>
+      </section>
+      <Campaigns />
+    </>
   );
 };
 

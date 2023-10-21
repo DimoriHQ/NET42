@@ -28,7 +28,6 @@ import saveWaitlist from "./action/saveWailist";
 import { getClaimable } from "./action/getClaimable";
 import { getCampaigns } from "./action/getCampaigns";
 import { createCampaign } from "./action/createCampaign";
-import { profile } from "./action/getUserNfts";
 import { verify } from "./action/verify";
 import { registerCampaign } from "./action/registerCampaign";
 import { connectStrava, connectStravaRequest, disconnectStrava, getStravaProfile } from "./action/strava";
@@ -105,9 +104,6 @@ const upload = multer();
   router.post("/campaign/:id/register", registerCampaign);
 
   router.get("/claimable", getClaimable);
-
-  router.get("/profile", profile);
-  router.post("/nft/update-owner/request", profile);
 
   router.post("/strava/request", connectStravaRequest);
   router.get("/strava/callback", connectStrava);

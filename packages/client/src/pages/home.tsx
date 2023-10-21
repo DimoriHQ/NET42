@@ -7,6 +7,7 @@ import Claimable from "../components/Home/Claimable";
 import For from "../components/Home/For";
 import Hero from "../components/Home/Hero";
 import Join from "../components/Home/Join";
+import Life from "../components/Home/Life";
 import Medal from "../components/Home/Medal";
 import Sponsorship from "../components/Home/Sponsorship";
 import Why from "../components/Home/Why";
@@ -19,11 +20,12 @@ const Home: React.FC = () => {
     <>
       <Hero />
       <Why />
-      <Claimable />
+      <Claimable showWithoutNfts={true} />
       <Campaigns />
       <Medal />
       <Sponsorship />
       <For />
+      <Life />
       <Join />
     </>
   );

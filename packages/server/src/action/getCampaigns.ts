@@ -3,6 +3,7 @@ import { KoaContext } from "../global";
 import { CampaignBaseType, UserStateStatus, getAllCampaigns } from "../models/campaign";
 import { ClaimableType, getNftClaimable } from "../models/net42";
 import { successResponse } from "../services/response";
+import { getCampaignJoined } from "../models/user";
 
 export const getCampaigns = async (ctx: KoaContext) => {
   const campaigns = await getAllCampaigns();
@@ -19,7 +20,7 @@ export const getCampaigns = async (ctx: KoaContext) => {
           return item.campaign._id.equals(campaign._id);
         });
 
-        const data = { ...campaign, claim };
+        const data = { ...campaign, claim, joined: await getCampaignJoined(campaign) };
         return data;
       }),
     );
@@ -33,9 +34,10 @@ export const getCampaigns = async (ctx: KoaContext) => {
           claimedNfts: [],
           registeredNft: undefined,
           registeredNftNotClaimed: undefined,
+          distance: 0,
         };
 
-        const data = { ...campaign, claim };
+        const data = { ...campaign, claim, joined: await getCampaignJoined(campaign) };
         return data;
       }),
     );

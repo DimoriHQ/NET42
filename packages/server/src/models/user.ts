@@ -1,17 +1,25 @@
 import { dbCollection } from "../db/collection";
 import { Document, Collection, ObjectId, WithId } from "mongodb";
 import logger from "../utils/log";
-import { DB__NET42 } from "../config";
+import { DB__NET42, STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET, STRAVA_REDIRECT } from "../config";
 import { createDBCollName } from "../db/createDBCollName";
-import { CampaignBaseType, createNet42Medal, getCampaignsById } from "./campaign";
-import { NET42Base, NET42NftType, createNft, createNftProof, isRegisteredNftExist, net42BaseToftType } from "./net42";
+import { CampaignBaseType, getCampaignsById } from "./campaign";
+import { NET42Base, NET42NftType, createNet42Medal, createNft, createNftProof, isRegisteredNftExist, net42BaseToftType } from "./net42";
 import randomstring from "randomstring";
+import strava from "strava-v3";
+import dayjs from "dayjs";
 
 export type User = {
   address: string;
   joined: ObjectId[];
   stravaOAuth2?: StravaOAuth2Type;
   stravaRequest?: string;
+  stravaLimit: {
+    [key: string]: Date;
+  };
+  stravaCache: {
+    [key: string]: number;
+  };
 };
 
 export type StravaOAuth2Type = {
@@ -48,7 +56,7 @@ type UserDocument = User & Document;
 
 const collName = createDBCollName("user");
 
-let userColl: Collection<UserDocument>;
+export let userColl: Collection<UserDocument>;
 
 export const userCollInit = async () => {
   const { collection } = await dbCollection<UserDocument>(DB__NET42, collName);
@@ -88,6 +96,8 @@ export const userJoinCampaign = async (
     const newUser: User = {
       address,
       joined: [campaign._id],
+      stravaLimit: {},
+      stravaCache: {},
     };
 
     const id = (await createUser(newUser)).insertedId;
@@ -149,26 +159,84 @@ export const userGetStravaProfile = async (address: string) => {
   return user.stravaOAuth2?.athlete;
 };
 
-// export const getTrackingData = async (access_token: string, registertime: number, endtime: number, page: number, per_page: number) => {
-//   const link = `${process.env.STRAVA_ATHLETE_LINK}/activities?before=${endtime}&after=${registertime}&page=${page}&per_page=${per_page}`;
+export const getCampaignJoined = async (campaign: CampaignBaseType) => {
+  const cursor = userColl.aggregate([
+    {
+      $match: {
+        joined: campaign._id,
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        count: {
+          $count: {},
+        },
+      },
+    },
+  ]);
 
-//   const data = await axios.get(link, {
-//     headers: {
-//       Authorization: `Bearer ${access_token}`,
-//     },
-//   });
+  for await (const data of cursor) {
+    return data.count;
+  }
+};
 
-//   return data.data.filter((e: any) => {
-//     return e.name.includes("Run");
-//   });
-// };
+export const userGetDistance = async (address: string, campaign: CampaignBaseType) => {
+  try {
+    const user = await getUser(address);
 
-// export const getDistance = async (activities: any) => {
-//   var total_distance = 0;
-//   if (activities) {
-//     activities.forEach((e: any) => {
-//       total_distance += e["distance"];
-//     });
-//   }
-//   return total_distance;
-// };
+    if (!user.stravaOAuth2) return 0;
+
+    strava.config({
+      access_token: user.stravaOAuth2.access_token,
+      client_id: STRAVA_CLIENT_ID,
+      client_secret: STRAVA_CLIENT_SECRET,
+      redirect_uri: STRAVA_REDIRECT,
+    });
+
+    const limit = user.stravaLimit?.[campaign._id.toHexString()];
+    if (limit) {
+      const cache = user.stravaCache?.[campaign._id.toHexString()];
+
+      if (!dayjs(limit).isAfter(dayjs().add(6, "hours"))) {
+        return cache;
+      }
+    }
+
+    const after = dayjs(campaign.startTime).unix();
+
+    const filter: { access_token: string; after: number; before?: number } = { access_token: user.stravaOAuth2.access_token, after };
+    if (campaign.hasEndTime) {
+      filter.before = dayjs(campaign.endTime).unix();
+    }
+
+    const data = await strava.athlete.listActivities(filter);
+
+    if (!data.length) {
+      return 0;
+    }
+
+    const result = data.reduce((a: number, b: { distance: number }) => {
+      return a + b.distance;
+    }, 0);
+
+    await userColl.updateOne(
+      { address },
+      {
+        $set: {
+          stravaLimit: {
+            [campaign._id.toHexString()]: dayjs().add(6, "hours").toDate(),
+          },
+          stravaCache: {
+            [campaign._id.toHexString()]: result,
+          },
+        },
+      },
+    );
+
+    return result as number;
+  } catch (error) {
+    logger.error({ error });
+    return 0;
+  }
+};

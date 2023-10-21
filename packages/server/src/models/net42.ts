@@ -8,7 +8,9 @@ import { CampaignBaseType, UserStateStatus } from "./campaign";
 import { ethers } from "ethers";
 import abi from "ethereumjs-abi";
 import dayjs from "dayjs";
-import { getCampaignsByUser } from "./user";
+import { getCampaignsByUser, userGetDistance } from "./user";
+import { createFilePath, web3StorageClient } from "../services/web3Storage";
+import { File } from "@web-std/file";
 
 // NFT
 export type NET42NftType = {
@@ -116,6 +118,10 @@ export const isTrackNftExist = async (campaign: WithId<CampaignBaseType>, owner:
   return nfts;
 };
 
+export const isTrackNftExistIndex = async (campaign: WithId<CampaignBaseType>, owner: string, index: number): Promise<NET42Document> => {
+  return await nftColl.findOne({ campaignId: campaign._id, participant: owner, type: 1, trackIndex: index });
+};
+
 export const handleNftId = async (id: number) => {};
 export const updateNftOwner = async (id: number) => {
   // const nft = await nftColl.findOne({ _id: id });
@@ -212,6 +218,7 @@ export type ClaimableType = {
   claimedNfts: WithId<NET42Base>[];
   registeredNft: WithId<NET42Base>;
   registeredNftNotClaimed: WithId<NET42Base>;
+  distance: number;
 };
 
 export const getNftClaimable = async (participant: string): Promise<ClaimableType[]> => {
@@ -220,7 +227,20 @@ export const getNftClaimable = async (participant: string): Promise<ClaimableTyp
   const campaigns = await getCampaignsByUser(participant);
   const data = await Promise.all(
     campaigns.map(async (campaign) => {
-      // TO-DO: parse strava data and create nfts
+      const distance = await userGetDistance(participant, campaign);
+
+      await Promise.all(
+        campaign.tracks.map(async (track, index) => {
+          if (distance > track.track) {
+            const nft = await isTrackNftExistIndex(campaign, participant, index);
+
+            if (!nft) {
+              const newNft = await createNet42Medal(campaign, participant, true, index);
+              await createNft(newNft.baseNft);
+            }
+          }
+        }),
+      );
 
       const nfts = await getNfts(campaign, 1, participant, false);
       const claimedNfts = await getNfts(campaign, 1, participant, true);
@@ -228,44 +248,78 @@ export const getNftClaimable = async (participant: string): Promise<ClaimableTyp
       const registeredNftNotClaimed = await nftColl.findOne({ campaignId: campaign._id, participant, type: 0, nftId: null });
 
       if (dayjs(campaign.startTime).isAfter(current)) {
-        return { campaign, status: UserStateStatus.NOT_START_YET, nfts, claimedNfts, registeredNft, registeredNftNotClaimed };
+        return { campaign, status: UserStateStatus.NOT_START_YET, nfts, claimedNfts, registeredNft, registeredNftNotClaimed, distance };
       }
 
       if (nfts.length > 0) {
-        return { campaign, status: UserStateStatus.CLAIMABLE, nfts, claimedNfts, registeredNft, registeredNftNotClaimed };
+        return { campaign, status: UserStateStatus.CLAIMABLE, nfts, claimedNfts, registeredNft, registeredNftNotClaimed, distance };
       }
 
       if (claimedNfts.length === campaign.tracks.length) {
-        return { campaign, status: UserStateStatus.FINISHED, nfts, claimedNfts, registeredNft, registeredNftNotClaimed };
+        return { campaign, status: UserStateStatus.FINISHED, nfts, claimedNfts, registeredNft, registeredNftNotClaimed, distance };
       }
 
       if (campaign.hasEndTime) {
         if (dayjs(campaign.endTime).isBefore(current)) {
           if (campaign.tracks.length > 1) {
             if (claimedNfts.length > 0) {
-              return { campaign, status: UserStateStatus.FINISHED, nfts, claimedNfts, registeredNft, registeredNftNotClaimed };
+              return { campaign, status: UserStateStatus.FINISHED, nfts, claimedNfts, registeredNft, registeredNftNotClaimed, distance };
             }
           }
 
           if (claimedNfts.length === 0) {
-            if (registeredNft) return { campaign, status: UserStateStatus.UNFINISHED, nfts, claimedNfts, registeredNft, registeredNftNotClaimed };
+            if (registeredNft) return { campaign, status: UserStateStatus.UNFINISHED, nfts, claimedNfts, registeredNft, registeredNftNotClaimed, distance };
           }
 
-          return { campaign, status: UserStateStatus.ENDED, nfts, claimedNfts, registeredNft, registeredNftNotClaimed };
+          return { campaign, status: UserStateStatus.ENDED, nfts, claimedNfts, registeredNft, registeredNftNotClaimed, distance };
         }
       }
 
       if (registeredNft) {
-        return { campaign, status: UserStateStatus.REGISTERED, nfts, claimedNfts, registeredNft, registeredNftNotClaimed };
+        return { campaign, status: UserStateStatus.REGISTERED, nfts, claimedNfts, registeredNft, registeredNftNotClaimed, distance };
       }
 
       if (registeredNftNotClaimed) {
-        return { campaign, status: UserStateStatus.AVAILABLE, nfts, claimedNfts, registeredNft, registeredNftNotClaimed };
+        return { campaign, status: UserStateStatus.AVAILABLE, nfts, claimedNfts, registeredNft, registeredNftNotClaimed, distance };
       }
 
-      return { campaign, status: UserStateStatus.AVAILABLE, nfts, claimedNfts, registeredNft, registeredNftNotClaimed };
+      return { campaign, status: UserStateStatus.AVAILABLE, nfts, claimedNfts, registeredNft, registeredNftNotClaimed, distance };
     }),
   );
 
   return data;
+};
+
+export const createNet42Medal = async (
+  campaign: CampaignBaseType,
+  owner: string,
+  isTrack: boolean = false,
+  trackIndex: number = 0,
+): Promise<{
+  baseNft: NET42Base;
+  nft: NET42NftType;
+}> => {
+  const type = isTrack ? 1 : 0;
+  const track = isTrack ? campaign.tracks[trackIndex].track : 0;
+
+  const baseNft: NET42Base = {
+    owner,
+    campaignId: campaign._id,
+    participant: owner,
+    createdDate: dayjs().toDate(),
+    type,
+    trackIndex,
+    track,
+    metadata: "",
+  };
+
+  const nft = net42BaseToftType(campaign, baseNft);
+
+  const file = new File([JSON.stringify(nft)], "metadata.json", { type: "application/json" });
+  const cid = await web3StorageClient.put([file]);
+  const metadata = createFilePath(cid, file.name);
+
+  baseNft.metadata = metadata;
+
+  return { baseNft, nft };
 };
