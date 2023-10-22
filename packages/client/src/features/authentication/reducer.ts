@@ -102,6 +102,21 @@ export const getStravaProfile = createAsyncThunk("auth/getStravaProfile", async 
   }
 });
 
+export const getMaskProfile = createAsyncThunk("auth/getMaskProfile", async (_, { getState, dispatch }) => {
+  const token = await getAuthStateToken(getState());
+
+  try {
+    const { data } = await axios.get(`https://api.web3.bio/profile/${token.address}`);
+
+    if (data) {
+      return data;
+    }
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+});
+
 const authReducer = createReducer(defaultAuthReducer, (builder) => {
   return builder
     .addCase(setProvider, (state, action) => {
@@ -145,8 +160,8 @@ const authReducer = createReducer(defaultAuthReducer, (builder) => {
     .addCase(setAddress, (state, action) => {
       state.address = action.payload;
     })
-    .addCase(setToken, (state, action) => {
-      state.token = action.payload;
+    .addCase(getMaskProfile.fulfilled, (state, action) => {
+      state.maskProfile = action.payload;
     });
 });
 

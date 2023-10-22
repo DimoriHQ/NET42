@@ -104,6 +104,11 @@ const Profile: React.FC = () => {
                 ""
               )}
             </div>
+            <div className="mt-4">
+              {auth.maskProfile?.map((item, index) => {
+                return <div key={index}>{item.identity}</div>;
+              })}
+            </div>
 
             {isMe ? (
               <div className="mt-12">

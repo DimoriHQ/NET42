@@ -48,6 +48,19 @@ export type AuthReducer = {
     follower: any;
   };
 
+  maskProfile?: {
+    address: string;
+    identity: string;
+    platform: string;
+    displayName: string;
+    avatar: string;
+    email: string;
+    description: string;
+    location: string;
+    header: string;
+    links: any;
+  }[];
+
   token: string;
 };
 

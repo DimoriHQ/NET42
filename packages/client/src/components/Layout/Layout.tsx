@@ -4,7 +4,7 @@ import { Outlet } from "react-router-dom";
 import { useEffectOnce } from "usehooks-ts";
 import { useAccount } from "wagmi";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { clearAuth, getStravaProfile, selectAuth, setAddress, setProvider, setToken, verify } from "../../features/authentication/reducer";
+import { clearAuth, getMaskProfile, getStravaProfile, selectAuth, setAddress, setProvider, setToken, verify } from "../../features/authentication/reducer";
 import { getCampaigns } from "../../features/campaigns/reducer";
 import Footer from "../Footer/Footer";
 import Header from "../Header/Header";
@@ -36,6 +36,7 @@ const Layout: React.FC = () => {
     if (auth.token) {
       dispatch(verify());
       dispatch(getStravaProfile());
+      dispatch(getMaskProfile());
     }
   }, [auth.token]);
 
