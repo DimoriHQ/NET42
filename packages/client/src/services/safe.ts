@@ -7,7 +7,7 @@ import { OpenloginAdapter, OpenloginAdapterOptions } from "@web3auth/openlogin-a
 // https://dashboard.web3auth.io/
 // https://chainlist.org/
 
-export const safeScrollOptions: Web3AuthOptions = {
+export const web3authOptions: Web3AuthOptions = {
   clientId: "BNUr_r-K_wFcFV9L6oUvz8rIH9Jree3r06YgQ5VIaMs0aJV5jUeU9qXr9-arA9YshjrSV2vCtYM07JN2yDXrLWE",
   web3AuthNetwork: "testnet",
   chainConfig: {
@@ -19,7 +19,6 @@ export const safeScrollOptions: Web3AuthOptions = {
   },
   uiConfig: {
     appName: "NET42.run",
-    theme: "dark",
   },
 };
 
@@ -43,7 +42,7 @@ export const safeLoginParams: OpenloginAdapterOptions = {
   adapterSettings: {
     uxMode: "redirect",
     whiteLabel: {
-      name: "NET42.run",
+      appName: "NET42.run",
     },
   },
 };

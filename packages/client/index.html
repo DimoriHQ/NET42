@@ -10,16 +10,12 @@
 
 <body>
   <div id="root"></div>
+
   <script>
     window.global = window;
-
   </script>
   <script type="module">
-    import process from "process";
-    import EventEmitter from "events";
     import { Buffer } from "buffer/";
-    window.process = process;
-    window.EventEmitter = EventEmitter;
     globalThis.Buffer = Buffer;
   </script>
   <script type="module" src="/src/main.tsx"></script>

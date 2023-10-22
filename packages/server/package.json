@@ -27,8 +27,6 @@
     "ethers": "v5",
     "helia": "^2.0.3",
     "ipfs-car": "^1.0.0",
-    "ipfs-core": "^0.18.1",
-    "ipfs-http-client": "^60.0.1",
     "iron-session": "^6.3.1",
     "iso-datestring-validator": "^2.2.2",
     "jimp": "^0.22.10",
@@ -57,7 +55,6 @@
   },
   "devDependencies": {
     "@tsconfig/node-lts": "^18.12.5",
-    "@types/cron": "^2.0.1",
     "@types/ethereumjs-abi": "^0.6.4",
     "@types/koa": "^2.13.10",
     "@types/koa-bodyparser": "^4.3.11",

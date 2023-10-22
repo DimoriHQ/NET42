@@ -2,11 +2,10 @@ import { Close } from "@styled-icons/material-outlined";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useEffectOnce } from "usehooks-ts";
 import { useAccount, useContractReads, useDisconnect, usePublicClient } from "wagmi";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import config from "../../config";
-import { clearAuth, disconnectStrava, getStravaProfile, selectAuth, verify } from "../../features/authentication/reducer";
+import { clearAuth, disconnectStrava, selectAuth, verify } from "../../features/authentication/reducer";
 import Button from "../Button/Button";
 import ConnectStrava from "../Button/ConnectStrava";
 import Campaigns from "../Campaign/Campaigns";
@@ -17,33 +16,25 @@ const Profile: React.FC = () => {
   const auth = useAppSelector(selectAuth);
   const { disconnectAsync } = useDisconnect();
   const dispatch = useAppDispatch();
-  const { address, isConnected } = useAccount();
+  const { address } = useAccount();
   const publicClient = usePublicClient();
   const [nfts, setNfts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const isMe = addressParam == address;
 
-  useEffectOnce(() => {
-    if (isMe) {
-      dispatch(getStravaProfile({ isConnected }));
-    }
-  });
-
   const logout = async () => {
-    try {
-      dispatch(clearAuth());
-    } catch (error) {}
-
     try {
       await disconnectAsync();
     } catch (error) {}
 
     try {
-      await auth.web3AuthModalPack.signOut();
+      // await auth.web3Auth.logout();
     } catch (error) {}
 
-    location.reload();
+    try {
+      dispatch(clearAuth());
+    } catch (error) {}
   };
 
   const { data } = useContractReads({
@@ -124,9 +115,8 @@ const Profile: React.FC = () => {
                       onClick={() => {
                         dispatch(
                           disconnectStrava({
-                            isConnected,
                             callback: () => {
-                              dispatch(verify({ address }));
+                              dispatch(verify());
                             },
                           }),
                         );
@@ -138,9 +128,13 @@ const Profile: React.FC = () => {
                     ""
                   )}
                 </div>
-                <div>
-                  Strava username: <span className="font-bold">{auth.stravaProfile?.username}</span>
-                </div>
+                {auth.isStravaConnected ? (
+                  <div>
+                    Strava username: <span className="font-bold">{auth.stravaProfile?.username}</span>
+                  </div>
+                ) : (
+                  ""
+                )}
               </div>
             ) : (
               ""

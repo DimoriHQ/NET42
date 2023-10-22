@@ -3,25 +3,16 @@ import axios from "axios";
 import { RootState } from "../../app/store";
 import { setToast } from "../../components/Toast/toastReducer";
 import config from "../../config";
-import { getStateToken } from "../../services/getStateToken";
+import { getAuthStateToken } from "../../services/getStateToken";
 import { Response } from "../../services/response";
 import { CampaignType, MintProof, RawCampaignType, defaultCampaignReducer, emptyCampaign, rawToCampaignType } from "./types";
 
-export const getCampaigns = createAsyncThunk("campaign/getCampaigns", async ({ isConnected }: { isConnected: boolean }, { dispatch, getState }): Promise<CampaignType[]> => {
-  let token = "";
-  let address = "";
-  if (isConnected) {
-    const data = await getStateToken(getState());
-    token = data.token;
-    address = data.address;
-  }
+export const getCampaigns = createAsyncThunk("campaign/getCampaigns", async (_, { dispatch, getState }): Promise<CampaignType[]> => {
+  const token = await getAuthStateToken(getState());
 
   try {
-    const { data } = await axios.get<Response<RawCampaignType[]>>(`${config.apiURL}/v1/campaigns?address=${address}`, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-        Authorization: `Bearer ${token}`,
-      },
+    const { data } = await axios.get<Response<RawCampaignType[]>>(`${config.apiURL}/v1/campaigns?address=${token.address}`, {
+      headers: { Authorization: `Bearer ${token.token}` },
     });
     if (data.status) {
       return data.data.map(rawToCampaignType);
@@ -38,23 +29,14 @@ export const getCampaigns = createAsyncThunk("campaign/getCampaigns", async ({ i
 
 export const createCampaign = createAsyncThunk(
   "campaign/createCampaign",
-  async (
-    { campaign, isConnected, callback }: { campaign: FormData; isConnected: boolean; callback: (last: CampaignType) => void },
-    { getState, dispatch },
-  ): Promise<CampaignType[]> => {
-    let token = "";
-    let address = "";
-    if (isConnected) {
-      const data = await getStateToken(getState());
-      token = data.token;
-      address = data.address;
-    }
+  async ({ campaign, callback }: { campaign: FormData; callback: (last: CampaignType) => void }, { getState, dispatch }): Promise<CampaignType[]> => {
+    const token = await getAuthStateToken(getState());
 
     try {
-      const { data } = await axios.post<Response<RawCampaignType[]>>(`${config.apiURL}/v1/campaign?address=${address}`, campaign, {
+      const { data } = await axios.post<Response<RawCampaignType[]>>(`${config.apiURL}/v1/campaign?address=${token.address}`, campaign, {
         headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token.token}`,
         },
       });
 
@@ -93,23 +75,12 @@ export const getCampaign = createAsyncThunk("campaign/getCampaign", async ({ cal
 
 export const registerCampaign = createAsyncThunk(
   "campaign/registerCampaign",
-  async (
-    { id, callback, isConnected }: { id: string; isConnected: boolean; callback: ({ data }: { data: MintProof }) => void },
-    { getState, dispatch },
-  ): Promise<MintProof | undefined> => {
-    let token = "";
-    let address = "";
-    if (isConnected) {
-      const data = await getStateToken(getState());
-      token = data.token;
-      address = data.address;
-    }
+  async ({ id, callback }: { id: string; callback: ({ data }: { data: MintProof }) => void }, { getState, dispatch }): Promise<MintProof | undefined> => {
+    const token = await getAuthStateToken(getState());
 
     try {
-      const { data } = await axios.post<Response<MintProof>>(`${config.apiURL}/v1/campaign/${id}/register?address=${address}`, undefined, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const { data } = await axios.post<Response<MintProof>>(`${config.apiURL}/v1/campaign/${id}/register?address=${token.address}`, undefined, {
+        headers: { Authorization: `Bearer ${token.token}` },
       });
       if (data.status) {
         callback({ data: data.data });

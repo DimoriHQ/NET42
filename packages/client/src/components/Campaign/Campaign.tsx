@@ -11,13 +11,12 @@ import Stepper from "@mui/material/Stepper";
 import { Exit } from "@styled-icons/boxicons-regular";
 import { TravelExplore } from "@styled-icons/material-outlined";
 import dayjs from "dayjs";
-import { ethers } from "ethers";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAccount, useContractReads, useContractWrite, useWaitForTransaction } from "wagmi";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import config from "../../config";
-import { selectAuth, setProvider, verify } from "../../features/authentication/reducer";
+import { selectAuth } from "../../features/authentication/reducer";
 import { getCampaigns, registerCampaign } from "../../features/campaigns/reducer";
 import { CampaignType } from "../../features/campaigns/types";
 import { sleep } from "../../services/utils/sleep";
@@ -205,10 +204,10 @@ const Campaign: React.FC<{ campaign: CampaignType }> = ({ campaign }) => {
       return (
         <Button
           onClick={async () => {
-            await auth.web3AuthModalPack.signIn();
-            const provider = new ethers.providers.Web3Provider(auth.web3AuthModalPack.getProvider()!);
-            dispatch(setProvider(provider));
-            if (address) dispatch(verify({ address }));
+            // await auth.web3AuthModalPack.signIn();
+            // const provider = new ethers.providers.Web3Provider(auth.web3AuthModalPack.getProvider()!);
+            // dispatch(setProvider(provider));
+            // if (address) dispatch(verify({ address }));
           }}
         >
           Connect

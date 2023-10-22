@@ -1,15 +1,13 @@
 import { InjectedConnector } from "@wagmi/core";
-import { mantleTestnet, polygonMumbai } from "@wagmi/core/chains";
 import { Web3AuthConnector } from "@web3auth/web3auth-wagmi-connector";
-import { Provider } from "react-redux";
 import { defineChain } from "viem";
 import { WagmiConfig, configureChains, createConfig } from "wagmi";
+import { WalletConnectConnector } from "wagmi/connectors/walletConnect";
 import { alchemyProvider } from "wagmi/providers/alchemy";
 import { publicProvider } from "wagmi/providers/public";
 import { useAppSelector } from "../../app/hooks";
-import { store } from "../../app/store";
+import config from "../../config";
 import { selectAuth } from "../../features/authentication/reducer";
-import { safeLoginParams } from "../../services/safe";
 import "../../styles/main.scss";
 import PopupProvider from "../Popup/PopupProvider";
 import Router from "../Router/Router";
@@ -22,7 +20,7 @@ import Toast from "../Toast/Toast";
 // https://www.rainbowkit.com/docs/authentication
 // https://wagmi.sh/examples/sign-in-with-ethereu
 
-const scroll = defineChain({
+export const scroll = defineChain({
   id: 534_351,
   name: "Scroll Sepolia",
   network: "scroll-sepolia",
@@ -56,7 +54,7 @@ const scroll = defineChain({
   testnet: true,
 });
 
-const testnetChains = [scroll as any, polygonMumbai, mantleTestnet];
+const testnetChains = [scroll];
 
 const App: React.FC = () => {
   const auth = useAppSelector(selectAuth);
@@ -68,25 +66,23 @@ const App: React.FC = () => {
     publicProvider(),
   ]);
 
-  const connector = new Web3AuthConnector({
-    chains,
-    options: {
-      web3AuthInstance: auth.web3AuthModalPack.web3Auth!,
-      loginParams: safeLoginParams,
-    },
-  });
-
   const wagmiConfig = createConfig({
     autoConnect: true,
     connectors: [
-      connector,
-      new InjectedConnector({
+      new Web3AuthConnector({
         chains,
         options: {
-          name: "Injected",
-          shimDisconnect: true,
+          web3AuthInstance: auth.web3Auth,
         },
       }),
+      new WalletConnectConnector({
+        chains,
+        options: {
+          projectId: config.walletConnectProfileId,
+          showQrModal: true,
+        },
+      }),
+      new InjectedConnector({ chains, options: { name: "Injected", shimDisconnect: true } }),
     ],
     publicClient,
     webSocketPublicClient,
@@ -94,12 +90,10 @@ const App: React.FC = () => {
 
   return (
     <WagmiConfig config={wagmiConfig}>
-      <Provider store={store}>
-        <PopupProvider>
-          <Router />
-          <Toast />
-        </PopupProvider>
-      </Provider>
+      <PopupProvider>
+        <Router />
+        <Toast />
+      </PopupProvider>
     </WagmiConfig>
   );
 };
