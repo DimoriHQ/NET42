@@ -41,7 +41,11 @@ if (isProduction) app.use(koaLogger());
 app.use(helmet());
 app.use(helmet.hidePoweredBy());
 app.use(corsMiddleware);
-app.use(bodyParser());
+app.use(
+  bodyParser({
+    formLimit: "200mb",
+  }),
+);
 app.use(auth);
 app.use(admin);
 app.use(strava);

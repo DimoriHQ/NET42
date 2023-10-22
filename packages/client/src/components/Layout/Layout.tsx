@@ -23,7 +23,6 @@ const Layout: React.FC = () => {
       dispatch(setAddress(address!));
 
       auth.web3Auth.authenticateUser().then((token) => {
-        console.log(token, "long");
         dispatch(setToken(token.idToken));
         dispatch(getCampaigns());
       });
