@@ -12,4 +12,6 @@ COPY packages/server/package.json packages/server/package.json
 COPY packages/server/dist packages/server/dist
 COPY packages/server/node_modules packages/server/node_modules
 
+RUN pnpm install
+
 CMD [ "node","--trace-warnings", "--es-module-specifier-resolution=node", "/app/packages/server/dist/main.js" ]
