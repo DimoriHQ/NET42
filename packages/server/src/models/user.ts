@@ -4,7 +4,7 @@ import logger from "../utils/log";
 import { DB__NET42, STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET, STRAVA_REDIRECT } from "../config";
 import { createDBCollName } from "../db/createDBCollName";
 import { CampaignBaseType, getCampaignsById } from "./campaign";
-import { NET42Base, NET42NftType, createNet42Medal, createNft, createNftProof, isRegisteredNftExist, net42BaseToftType } from "./net42";
+import { NET42Base, NET42NftType, createNet42Medal, createNft, createNftProof, isRegisteredNftExist, net42BaseToftType, nftColl } from "./net42";
 import randomstring from "randomstring";
 import strava from "strava-v3";
 import dayjs from "dayjs";
@@ -160,10 +160,10 @@ export const userGetStravaProfile = async (address: string) => {
 };
 
 export const getCampaignJoined = async (campaign: CampaignBaseType) => {
-  const cursor = userColl.aggregate([
+  const cursor = nftColl.aggregate([
     {
       $match: {
-        joined: campaign._id,
+        campaignId: campaign._id,
       },
     },
     {
