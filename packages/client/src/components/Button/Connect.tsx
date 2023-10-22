@@ -9,6 +9,7 @@ const Connect = () => {
   const connect = async () => {
     wagmiConnect({ connector: connectors[0] });
   };
+
   const Profile = () => {
     if (isConnected) {
       return (

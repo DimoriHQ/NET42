@@ -20,7 +20,7 @@ import Toast from "../Toast/Toast";
 // https://www.rainbowkit.com/docs/authentication
 // https://wagmi.sh/examples/sign-in-with-ethereu
 
-export const scroll = defineChain({
+export const scrollS = defineChain({
   id: 534_351,
   name: "Scroll Sepolia",
   network: "scroll-sepolia",
@@ -54,7 +54,7 @@ export const scroll = defineChain({
   testnet: true,
 });
 
-const testnetChains = [scroll];
+const testnetChains = [scrollS];
 
 const App: React.FC = () => {
   const auth = useAppSelector(selectAuth);

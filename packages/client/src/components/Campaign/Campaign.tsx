@@ -13,7 +13,7 @@ import { TravelExplore } from "@styled-icons/material-outlined";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { useAccount, useContractReads, useContractWrite, useWaitForTransaction } from "wagmi";
+import { useAccount, useConnect, useContractReads, useContractWrite, useWaitForTransaction } from "wagmi";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import config from "../../config";
 import { selectAuth } from "../../features/authentication/reducer";
@@ -44,6 +44,12 @@ const Campaign: React.FC<{ campaign: CampaignType }> = ({ campaign }) => {
   const [minting, setMinting] = useState(false);
   const [tokenId, setTokenId] = useState(-1);
   const { addPopup, removeAll } = usePopups();
+
+  const { connect: wagmiConnect, connectors } = useConnect();
+
+  const connect = async () => {
+    wagmiConnect({ connector: connectors[0] });
+  };
 
   const marks = [
     {
@@ -181,7 +187,7 @@ const Campaign: React.FC<{ campaign: CampaignType }> = ({ campaign }) => {
               setMinting(false);
 
               setTimeout(() => {
-                dispatch(getCampaigns({ isConnected }));
+                dispatch(getCampaigns());
               }, 2000);
             }, 3000);
 
@@ -201,18 +207,7 @@ const Campaign: React.FC<{ campaign: CampaignType }> = ({ campaign }) => {
 
   const CTAButton = () => {
     if (!isConnected || !address) {
-      return (
-        <Button
-          onClick={async () => {
-            // await auth.web3AuthModalPack.signIn();
-            // const provider = new ethers.providers.Web3Provider(auth.web3AuthModalPack.getProvider()!);
-            // dispatch(setProvider(provider));
-            // if (address) dispatch(verify({ address }));
-          }}
-        >
-          Connect
-        </Button>
-      );
+      return <Button onClick={connect}>Connect</Button>;
     }
 
     switch (campaign?.claim?.status) {
@@ -227,7 +222,6 @@ const Campaign: React.FC<{ campaign: CampaignType }> = ({ campaign }) => {
               try {
                 dispatch(
                   registerCampaign({
-                    isConnected,
                     id: campaign._id!,
                     callback: ({ data }) => {
                       write({

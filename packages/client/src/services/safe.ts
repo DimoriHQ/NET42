@@ -13,6 +13,7 @@ export const web3authOptions: Web3AuthOptions = {
   chainConfig: {
     chainNamespace: CHAIN_NAMESPACES.EIP155,
     displayName: scrollSepolia.name,
+
     chainId: "0x8274f",
     rpcTarget: "https://prettiest-warmhearted-telescope.scroll-testnet.discover.quiknode.pro/6cf890e6652e57165ce1f693f607fd19c4cc3c23/",
     blockExplorer: scrollSepolia.blockExplorers.default.url,
