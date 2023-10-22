@@ -34,9 +34,15 @@ const Header: React.FC = () => {
     <header className="py-[30px] md:py-[60px]">
       <Container>
         <div className="flex justify-between">
-          <Link to="/">
-            <img src="/images/logo.png" width={120} alt="Logo" />
-          </Link>
+          <div className="flex gap-3 md:gap-6 items-center justify-center flex-col md:flex-row">
+            <Link to="/" className="flex gap-2 items-center">
+              <img src="/images/logo.png" width={120} alt="Logo" />
+              <img src="/images/scroll.svg" width={40} alt="Scroll" />
+            </Link>
+            <a href="https://docs.scroll.io/en/user-guide/faucet/" target="_blank" rel="noopener noreferrer" className="underline">
+              Faucet Scroll Sepolia
+            </a>
+          </div>
 
           <div className="flex">{Profile()}</div>
         </div>
