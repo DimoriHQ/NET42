@@ -154,6 +154,9 @@ const authReducer = createReducer(defaultAuthReducer, (builder) => {
       state.token = "";
       tokenStorage.set("");
     })
+    .addCase(setToken, (state, action) => {
+      state.token = action.payload;
+    })
     .addCase(getStravaProfile.fulfilled, (state, action) => {
       state.stravaProfile = action.payload as any;
     })
