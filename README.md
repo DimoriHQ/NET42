@@ -17,12 +17,16 @@ NET42 is the answer. We're creating a platform where running benefits personal h
 ## Key Features
 
 NFT-Based Rewards: We create digital medals as NFTs to celebrate your fitness achievements.
+
 Charity Impact: Minted NFTs measure success in social causes campaigns, fueling charitable initiatives.
+
 Smart Contracts: Utilizing Web3 technology, we automate secure NFT rewards and donations.
+
 App Integration: NET42 seamlessly syncs with your preferred fitness apps, keeping you on track and purposeful.
+
 Community Hub: Connect with fellow runners, sharing experiences, achievements, and charitable contributions.
-Conclusion: 
-NET42 envisions a world where every run counts, not just for personal health but for the betterment of society. We're turning running goals into environmental and social causes through NFTs, inspiring people to run with a purpose. Join us as we embark on this exciting adventure. Together, we'll make each stride matter for a healthier planet and a more compassionate world.
+
+Conclusion: NET42 envisions a world where every run counts, not just for personal health but for the betterment of society. We're turning running goals into environmental and social causes through NFTs, inspiring people to run with a purpose. Join us as we embark on this exciting adventure. Together, we'll make each stride matter for a healthier planet and a more compassionate world.
 
 ## Technology Requirements
 
