@@ -1,5 +1,4 @@
 import React, { useEffect } from "react";
-import { useAccount } from "wagmi";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { getCampaigns, selectCampaign } from "../../features/campaigns/reducer";
 import Container from "../Layout/Container";
@@ -8,10 +7,9 @@ import Campaign from "./Campaign";
 const Campaigns: React.FC = () => {
   const campaign = useAppSelector(selectCampaign);
   const dispatch = useAppDispatch();
-  const { isConnected } = useAccount();
 
   useEffect(() => {
-    dispatch(getCampaigns({ isConnected }));
+    dispatch(getCampaigns());
   }, []);
 
   return (

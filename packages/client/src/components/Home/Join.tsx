@@ -1,5 +1,4 @@
 import React from "react";
-import Connect from "../Button/Connect";
 import Container from "../Layout/Container";
 
 const Join: React.FC = () => {
@@ -8,8 +7,6 @@ const Join: React.FC = () => {
       <Container>
         <div className="join p-[36px] text-center text-[42px] font-bold max-w-[833px] mx-auto">
           <div>Join NET42 today</div>
-
-          <Connect />
         </div>
       </Container>
     </section>

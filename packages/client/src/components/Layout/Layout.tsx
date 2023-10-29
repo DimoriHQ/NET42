@@ -2,35 +2,23 @@ import { ethers } from "ethers";
 import React, { useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { useEffectOnce } from "usehooks-ts";
-import { useAccount } from "wagmi";
+
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { clearAuth, getMaskProfile, getStravaProfile, selectAuth, setAddress, setProvider, setToken, verify } from "../../features/authentication/reducer";
+import { getMaskProfile, getStravaProfile, selectAuth, setProvider, verify } from "../../features/authentication/reducer";
 import { getCampaigns } from "../../features/campaigns/reducer";
 import Footer from "../Footer/Footer";
 import Header from "../Header/Header";
 
 const Layout: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { address, isConnected } = useAccount();
+
   const auth = useAppSelector(selectAuth);
 
   useEffectOnce(() => {
     dispatch(setProvider(new ethers.providers.Web3Provider(auth.web3Auth.provider!)));
+
+    dispatch(getCampaigns());
   });
-
-  useEffect(() => {
-    if (isConnected) {
-      dispatch(setAddress(address!));
-
-      auth.web3Auth.authenticateUser().then((token) => {
-        dispatch(setToken(token.idToken));
-        dispatch(getCampaigns());
-      });
-    } else {
-      dispatch(clearAuth());
-      dispatch(getCampaigns());
-    }
-  }, [isConnected]);
 
   useEffect(() => {
     if (auth.token) {

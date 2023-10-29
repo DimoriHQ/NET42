@@ -1,13 +1,10 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useAccount } from "wagmi";
-import Connect from "../Button/Connect";
 import Discord from "../Icon/Discord";
 import Twitter from "../Icon/Twitter";
 import Span from "../Span/Span";
 
 const Hero: React.FC = () => {
-  const { isConnected } = useAccount();
   const navigate = useNavigate();
 
   return (
@@ -28,7 +25,6 @@ const Hero: React.FC = () => {
               <a href="https://discord.gg/9kPGuWwq" target="_blank" rel="noopener noreferrer">
                 <Discord />
               </a>
-              <Connect />
             </div>
           </div>
         </div>

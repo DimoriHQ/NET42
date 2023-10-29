@@ -16,7 +16,6 @@ const Footer: React.FC = () => {
           <div className="flex items-center gap-4">
             <Link to="/" className="flex gap-2 items-center">
               <img src="/images/logo.png" alt="Logo" />
-              <img src="/images/scroll.svg" width={40} alt="Scroll" />
             </Link>
 
             {auth.isAdmin && (
