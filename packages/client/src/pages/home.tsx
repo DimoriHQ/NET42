@@ -24,7 +24,7 @@ const Home: React.FC = () => {
       <Medal />
       <Sponsorship />
       <For />
-      <Life />
+      {/* <Life /> */}
       <Join />
     </>
   );
