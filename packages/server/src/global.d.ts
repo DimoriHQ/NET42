@@ -1,3 +1,5 @@
+// Copyright 2021 - 2024 Transflox LLC. All rights reserved.
+
 import Koa, { BaseContext } from "koa";
 import Router from "@koa/router";
 
