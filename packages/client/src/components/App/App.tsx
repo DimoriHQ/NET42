@@ -28,11 +28,11 @@ export const scrollS = defineChain({
   rpcUrls: {
     default: {
       http: ["https://sepolia-rpc.scroll.io"],
-      webSocket: ["wss://prettiest-warmhearted-telescope.scroll-testnet.discover.quiknode.pro/6cf890e6652e57165ce1f693f607fd19c4cc3c23/"],
+      webSocket: ["wss://scroll-public.scroll-testnet.quiknode.pro"],
     },
     public: {
       http: ["https://sepolia-rpc.scroll.io"],
-      webSocket: ["wss://prettiest-warmhearted-telescope.scroll-testnet.discover.quiknode.pro/6cf890e6652e57165ce1f693f607fd19c4cc3c23/"],
+      webSocket: ["wss://scroll-public.scroll-testnet.quiknode.pro"],
     },
   },
   blockExplorers: {
