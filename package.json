@@ -2,6 +2,11 @@
   "name": "net42",
   "version": "0.1.0",
   "private": true,
+  "scripts": {
+    "update-lock": "pnpm update-lock-client && pnpm update-lock-relayer",
+    "update-lock-client": "cd packages/client && pnpm --ignore-workspace install",
+    "update-lock-relayer": "cd packages/relayer && pnpm --ignore-workspace install"
+  },
   "devDependencies": {
     "prettier": "^3.1.0"
   }
