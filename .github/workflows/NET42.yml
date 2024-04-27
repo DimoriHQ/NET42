@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - "packages/client/**"
-      - ".github/**"
+      - ".github/workflows/NET42.yml"
   workflow_dispatch:
 
 env:
