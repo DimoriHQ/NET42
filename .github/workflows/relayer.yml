@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 env:
-  CODENAME: DimoriHQ
+  CODENAME: dinmorihq
   CLUSTER: sulfureux
   CURRENT_SERVICE: net42
   SERVICE_TYPE: backend
