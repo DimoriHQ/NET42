@@ -1,9 +1,0 @@
-{
-  "sites": [
-    {
-      "slug": "gigantic-answer-melodic",
-      "distDir": "dist",
-      "buildCommand": "pnpm run build"
-    }
-  ]
-}
